@@ -464,28 +464,6 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     }
   }
 
-  // Enable FMA
-  for (Arg *A: Args.filtered(options::OPT_Mfma_on, options::OPT_fma)) {
-    A->claim();
-    LowerCmdArgs.push_back("-x");
-    LowerCmdArgs.push_back("172");
-    LowerCmdArgs.push_back("0x40000000");
-    LowerCmdArgs.push_back("-x");
-    LowerCmdArgs.push_back("179");
-    LowerCmdArgs.push_back("1");
-  }
-
-  // Disable FMA
-  for (Arg *A: Args.filtered(options::OPT_Mfma_off, options::OPT_nofma)) {
-    A->claim();
-    LowerCmdArgs.push_back("-x");
-    LowerCmdArgs.push_back("171");
-    LowerCmdArgs.push_back("0x40000000");
-    LowerCmdArgs.push_back("-x");
-    LowerCmdArgs.push_back("178");
-    LowerCmdArgs.push_back("1");
-  }
-
   // For -fPIC set -x 62 8 for second part of Fortran frontend
   for (Arg *A: Args.filtered(options::OPT_fPIC)) {
     A->claim();
@@ -548,6 +526,59 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
       NeedIEEE = false;
     }
     A->claim();
+  }
+
+  // fp-contract=fast is the default
+  bool EnableFPContraction = true;
+  if (Arg *A = Args.getLastArg(options::OPT_ffp_contract,
+                             options::OPT_Mfma_on,
+                             options::OPT_fma,
+                             options::OPT_Mfma_off,
+                             options::OPT_nofma)) {
+    auto Opt = A->getOption();
+    if (Opt.matches(options::OPT_ffp_contract)) {
+      StringRef Val = A->getValue();
+      if ((Val == "fast") || (Val == "on")) {
+        EnableFPContraction = true;
+      } else if (Val == "off") {
+        EnableFPContraction = false;
+      } else {
+        D.Diag(diag::err_drv_unsupported_option_argument)
+          << A->getOption().getName() << Val;
+      }
+    } else if(Opt.matches(options::OPT_Mfma_on) ||
+              Opt.matches(options::OPT_fma)) {
+      EnableFPContraction = true;
+    } else {
+      EnableFPContraction = false;
+    }
+  }
+
+  if(OptLevel == 0)
+    EnableFPContraction = false;
+
+  // Emit contract math instructions.
+  // Step 1 : Generate fma instructions in flang (can override with fma flag)
+  // Step 2 : Propagate fma contract information to LLVM to further
+  //          exploit contraction opportunities
+  if (EnableFPContraction) {
+    LowerCmdArgs.push_back("-x");
+    LowerCmdArgs.push_back("172");
+    LowerCmdArgs.push_back("0x40000000");
+    LowerCmdArgs.push_back("-x");
+    LowerCmdArgs.push_back("179");
+    LowerCmdArgs.push_back("1");
+    // Step 2
+    LowerCmdArgs.push_back("-x");
+    LowerCmdArgs.push_back("216");
+    LowerCmdArgs.push_back("0x1000");
+  } else {
+    LowerCmdArgs.push_back("-x");
+    LowerCmdArgs.push_back("171");
+    LowerCmdArgs.push_back("0x40000000");
+    LowerCmdArgs.push_back("-x");
+    LowerCmdArgs.push_back("178");
+    LowerCmdArgs.push_back("1");
   }
 
   if (NeedFastMath) {
