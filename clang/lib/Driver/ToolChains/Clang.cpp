@@ -5359,6 +5359,66 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
     }
     A->render(Args, CmdArgs);
   }
+#ifdef ENABLE_CLASSIC_FLANG
+  // Use PGMATH for Classic Flang by default.
+  else {
+    CmdArgs.push_back("-fveclib=PGMATH");
+  }
+
+  std::string PassRemarkVal(""), PassRemarkOpt("");
+  if (Args.getLastArg(options::OPT_Minfoall)) {
+    PassRemarkVal = ".*";
+    Args.ClaimAllArgs(options::OPT_Minfoall);
+  } else if (Arg *A = Args.getLastArg(options::OPT_Minfo_EQ)) {
+    for (const StringRef &val : A->getValues()) {
+      if (val.equals("all")) {
+        PassRemarkVal = ".*";
+        break;
+      } else if (val.equals("inline") || val.equals("vect")) {
+        PassRemarkVal += PassRemarkVal.empty() ? "" : "|";
+        PassRemarkVal += val;
+      } else {
+        D.Diag(diag::err_drv_clang_unsupported_minfo_arg)
+          << A->getOption().getName()
+          << val.str();
+        break;
+      }
+    }
+  }
+  PassRemarkOpt = "-pass-remarks=" + PassRemarkVal;
+  CmdArgs.push_back("-mllvm");
+  CmdArgs.push_back(Args.MakeArgString(PassRemarkOpt));
+  Args.ClaimAllArgs(options::OPT_Minfo_EQ);
+  PassRemarkVal.clear();
+  PassRemarkOpt.clear();
+
+  if (Args.getLastArg(options::OPT_Mneginfoall)) {
+    PassRemarkVal = ".*";
+    Args.ClaimAllArgs(options::OPT_Mneginfoall);
+  } else if (Arg *A = Args.getLastArg(options::OPT_Mneginfo_EQ)) {
+    for (const StringRef &val : A->getValues()) {
+      if (val.equals("all")) {
+        PassRemarkVal = ".*";
+        break;
+      } else if (val.equals("inline") || val.equals("vect")) {
+        PassRemarkVal += PassRemarkVal.empty() ? "" : "|";
+        PassRemarkVal += val;
+      } else {
+        D.Diag(diag::err_drv_clang_unsupported_minfo_arg)
+          << A->getOption().getName()
+          << val.str();
+        break;
+      }
+    }
+  }
+  PassRemarkOpt = "-pass-remarks-missed=" + PassRemarkVal;
+  CmdArgs.push_back("-mllvm");
+  CmdArgs.push_back(Args.MakeArgString(PassRemarkOpt));
+  PassRemarkOpt = "-pass-remarks-analysis=" + PassRemarkVal;
+  CmdArgs.push_back("-mllvm");
+  CmdArgs.push_back(Args.MakeArgString(PassRemarkOpt));
+  Args.ClaimAllArgs(options::OPT_Mneginfo_EQ);
+#endif
 
   if (Args.hasFlag(options::OPT_fmerge_all_constants,
                    options::OPT_fno_merge_all_constants, false))
