@@ -37,6 +37,12 @@ TargetLibraryInfoImpl *createTLII(const llvm::Triple &TargetTriple,
     TLII->addVectorizableFunctionsFromVecLib(TargetLibraryInfoImpl::MASSV,
                                              TargetTriple);
     break;
+#ifdef ENABLE_CLASSIC_FLANG
+  case VectorLibrary::PGMATH:
+    TLII->addVectorizableFunctionsFromVecLib(TargetLibraryInfoImpl::PGMATH,
+                                             TargetTriple);
+    break;
+#endif
   case VectorLibrary::SVML:
     TLII->addVectorizableFunctionsFromVecLib(TargetLibraryInfoImpl::SVML,
                                              TargetTriple);

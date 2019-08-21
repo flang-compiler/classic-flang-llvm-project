@@ -2684,6 +2684,9 @@ void CGDebugInfo::emitVTableSymbol(llvm::GlobalVariable *VTable,
           TheCU, SymbolName, VTable->getName(), Unit, /*LineNo=*/0,
           getOrCreateType(VoidPtr, Unit), VTable->hasLocalLinkage(),
           /*isDefined=*/true, nullptr, DT, /*TemplateParameters=*/nullptr,
+#ifdef ENABLE_CLASSIC_FLANG
+          llvm::DINode::FlagZero,
+#endif
           PAlign);
   VTable->addDebugInfo(GVE);
 }
@@ -4408,7 +4411,11 @@ CGDebugInfo::getGlobalVariableForwardDeclaration(const VarDecl *VD) {
   auto Align = getDeclAlignIfRequired(VD, CGM.getContext());
   auto *GV = DBuilder.createTempGlobalVariableFwdDecl(
       DContext, Name, LinkageName, Unit, Line, getOrCreateType(T, Unit),
-      !VD->isExternallyVisible(), nullptr, TemplateParameters, Align);
+      !VD->isExternallyVisible(), nullptr, TemplateParameters,
+#ifdef ENABLE_CLASSIC_FLANG
+      llvm::DINode::FlagZero,
+#endif
+      Align);
   FwdDeclReplaceMap.emplace_back(
       std::piecewise_construct,
       std::make_tuple(cast<VarDecl>(VD->getCanonicalDecl())),
@@ -5939,6 +5946,9 @@ void CGDebugInfo::EmitGlobalVariable(llvm::GlobalVariable *Var,
         Var->hasLocalLinkage(), true,
         Expr.empty() ? nullptr : DBuilder.createExpression(Expr),
         getOrCreateStaticDataMemberDeclarationOrNull(D), TemplateParameters,
+#ifdef ENABLE_CLASSIC_FLANG
+        llvm::DINode::FlagZero,
+#endif
         Align, Annotations);
     Var->addDebugInfo(GVE);
   }
@@ -6018,7 +6028,11 @@ void CGDebugInfo::EmitGlobalVariable(const ValueDecl *VD, const APValue &Init) {
   GV.reset(DBuilder.createGlobalVariableExpression(
       DContext, Name, StringRef(), Unit, getLineNumber(VD->getLocation()), Ty,
       true, true, InitExpr, getOrCreateStaticDataMemberDeclarationOrNull(VarD),
-      TemplateParameters, Align));
+      TemplateParameters,
+#ifdef ENABLE_CLASSIC_FLANG
+      llvm::DINode::FlagZero,
+#endif
+      Align));
 }
 
 void CGDebugInfo::EmitExternalVariable(llvm::GlobalVariable *Var,
@@ -6036,7 +6050,11 @@ void CGDebugInfo::EmitExternalVariable(llvm::GlobalVariable *Var,
   llvm::DIGlobalVariableExpression *GVE =
       DBuilder.createGlobalVariableExpression(
           DContext, Name, StringRef(), Unit, getLineNumber(D->getLocation()),
-          Ty, false, false, nullptr, nullptr, nullptr, Align);
+          Ty, false, false, nullptr, nullptr, nullptr,
+#ifdef ENABLE_CLASSIC_FLANG
+          llvm::DINode::FlagZero,
+#endif
+          Align);
   Var->addDebugInfo(GVE);
 }
 

@@ -130,6 +130,9 @@ public:
     DarwinLibSystemM, // Use Darwin's libsystem_m.
     LIBMVEC,          // GLIBC Vector Math library.
     MASSV,            // IBM MASS vector library.
+#ifdef ENABLE_CLASSIC_FLANG
+    PGMATH,           // PGI math library.
+#endif
     SVML,             // Intel short vector math library.
     SLEEFGNUABI, // SLEEF - SIMD Library for Evaluating Elementary Functions.
     ArmPL,       // Arm Performance Libraries.
