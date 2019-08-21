@@ -1161,7 +1161,8 @@ LLVMMetadataRef LLVMDIBuilderCreateGlobalVariableExpression(
     LLVMDIBuilderRef Builder, LLVMMetadataRef Scope, const char *Name,
     size_t NameLen, const char *Linkage, size_t LinkLen, LLVMMetadataRef File,
     unsigned LineNo, LLVMMetadataRef Ty, LLVMBool LocalToUnit,
-    LLVMMetadataRef Expr, LLVMMetadataRef Decl, uint32_t AlignInBits);
+    LLVMMetadataRef Expr, LLVMMetadataRef Decl, LLVMDIFlags Flags,
+    uint32_t AlignInBits);
 
 
 /**
@@ -1259,7 +1260,7 @@ LLVMMetadataRef LLVMDIBuilderCreateTempGlobalVariableFwdDecl(
     LLVMDIBuilderRef Builder, LLVMMetadataRef Scope, const char *Name,
     size_t NameLen, const char *Linkage, size_t LnkLen, LLVMMetadataRef File,
     unsigned LineNo, LLVMMetadataRef Ty, LLVMBool LocalToUnit,
-    LLVMMetadataRef Decl, uint32_t AlignInBits);
+    LLVMMetadataRef Decl, LLVMDIFlags Flags, uint32_t AlignInBits);
 
 /**
  * Only use in "new debug format" (LLVMIsNewDbgInfoFormat() is true).
