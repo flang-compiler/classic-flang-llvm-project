@@ -160,22 +160,25 @@ class DebugLocStream::ListBuilder {
   const MachineInstr &MI;
   size_t ListIndex;
   Optional<uint8_t> TagOffset;
+  bool Finalized;
 
 public:
   ListBuilder(DebugLocStream &Locs, DwarfCompileUnit &CU, AsmPrinter &Asm,
               DbgVariable &V, const MachineInstr &MI)
       : Locs(Locs), Asm(Asm), V(V), MI(MI), ListIndex(Locs.startList(&CU)),
-        TagOffset(None) {}
+        TagOffset(None), Finalized(false) {}
 
   void setTagOffset(uint8_t TO) {
     TagOffset = TO;
   }
 
+  void finalize();
+
   /// Finalize the list.
   ///
   /// If the list is empty, delete it.  Otherwise, finalize it by creating a
   /// temp symbol in \a Asm and setting up the \a DbgVariable.
-  ~ListBuilder();
+  ~ListBuilder() { finalize(); }
 
   DebugLocStream &getLocs() { return Locs; }
 };

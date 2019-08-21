@@ -37,6 +37,7 @@ config.use_z3_solver = lit_config.params.get('USE_Z3_SOLVER', "@USE_Z3_SOLVER@")
 config.has_plugins = @CLANG_PLUGIN_SUPPORT@
 config.clang_vendor_uti = "@CLANG_VENDOR_UTI@"
 config.llvm_external_lit = path(r"@LLVM_EXTERNAL_LIT@")
+config.use_classic_flang = @LLVM_ENABLE_CLASSIC_FLANG@
 
 import lit.llvm
 lit.llvm.initialize(lit_config, config)

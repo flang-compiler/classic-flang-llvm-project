@@ -2917,12 +2917,14 @@ class DIGlobalVariable : public DIVariable {
 
   bool IsLocalToUnit;
   bool IsDefinition;
+  DIFlags Flags;
 
   DIGlobalVariable(LLVMContext &C, StorageType Storage, unsigned Line,
-                   bool IsLocalToUnit, bool IsDefinition, uint32_t AlignInBits,
-                   ArrayRef<Metadata *> Ops)
+                   bool IsLocalToUnit, bool IsDefinition, DIFlags Flags,
+                   uint32_t AlignInBits, ArrayRef<Metadata *> Ops)
       : DIVariable(C, DIGlobalVariableKind, Storage, Line, Ops, AlignInBits),
-        IsLocalToUnit(IsLocalToUnit), IsDefinition(IsDefinition) {}
+        IsLocalToUnit(IsLocalToUnit), IsDefinition(IsDefinition),
+        Flags(Flags) {}
   ~DIGlobalVariable() = default;
 
   static DIGlobalVariable *
@@ -2930,12 +2932,12 @@ class DIGlobalVariable : public DIVariable {
           StringRef LinkageName, DIFile *File, unsigned Line, DIType *Type,
           bool IsLocalToUnit, bool IsDefinition,
           DIDerivedType *StaticDataMemberDeclaration, MDTuple *TemplateParams,
-          uint32_t AlignInBits, DINodeArray Annotations, StorageType Storage,
-          bool ShouldCreate = true) {
+          DIFlags Flags, uint32_t AlignInBits, DINodeArray Annotations,
+          StorageType Storage, bool ShouldCreate = true) {
     return getImpl(Context, Scope, getCanonicalMDString(Context, Name),
                    getCanonicalMDString(Context, LinkageName), File, Line, Type,
                    IsLocalToUnit, IsDefinition, StaticDataMemberDeclaration,
-                   cast_or_null<Metadata>(TemplateParams), AlignInBits,
+                   cast_or_null<Metadata>(TemplateParams), Flags, AlignInBits,
                    Annotations.get(), Storage, ShouldCreate);
   }
   static DIGlobalVariable *
@@ -2943,14 +2945,14 @@ class DIGlobalVariable : public DIVariable {
           MDString *LinkageName, Metadata *File, unsigned Line, Metadata *Type,
           bool IsLocalToUnit, bool IsDefinition,
           Metadata *StaticDataMemberDeclaration, Metadata *TemplateParams,
-          uint32_t AlignInBits, Metadata *Annotations, StorageType Storage,
-          bool ShouldCreate = true);
+          DIFlags Flags, uint32_t AlignInBits, Metadata *Annotations,
+          StorageType Storage, bool ShouldCreate = true);
 
   TempDIGlobalVariable cloneImpl() const {
     return getTemporary(getContext(), getScope(), getName(), getLinkageName(),
                         getFile(), getLine(), getType(), isLocalToUnit(),
                         isDefinition(), getStaticDataMemberDeclaration(),
-                        getTemplateParams(), getAlignInBits(),
+                        getTemplateParams(), getFlags(), getAlignInBits(),
                         getAnnotations());
   }
 
@@ -2960,22 +2962,26 @@ public:
       (DIScope * Scope, StringRef Name, StringRef LinkageName, DIFile *File,
        unsigned Line, DIType *Type, bool IsLocalToUnit, bool IsDefinition,
        DIDerivedType *StaticDataMemberDeclaration, MDTuple *TemplateParams,
-       uint32_t AlignInBits, DINodeArray Annotations),
+       DIFlags Flags, uint32_t AlignInBits, DINodeArray Annotations),
       (Scope, Name, LinkageName, File, Line, Type, IsLocalToUnit, IsDefinition,
-       StaticDataMemberDeclaration, TemplateParams, AlignInBits, Annotations))
+       StaticDataMemberDeclaration, TemplateParams, Flags, AlignInBits,
+       Annotations))
   DEFINE_MDNODE_GET(
       DIGlobalVariable,
       (Metadata * Scope, MDString *Name, MDString *LinkageName, Metadata *File,
        unsigned Line, Metadata *Type, bool IsLocalToUnit, bool IsDefinition,
        Metadata *StaticDataMemberDeclaration, Metadata *TemplateParams,
-       uint32_t AlignInBits, Metadata *Annotations),
+       DIFlags Flags, uint32_t AlignInBits, Metadata *Annotations),
       (Scope, Name, LinkageName, File, Line, Type, IsLocalToUnit, IsDefinition,
-       StaticDataMemberDeclaration, TemplateParams, AlignInBits, Annotations))
+       StaticDataMemberDeclaration, TemplateParams, Flags, AlignInBits,
+       Annotations))
 
   TempDIGlobalVariable clone() const { return cloneImpl(); }
 
   bool isLocalToUnit() const { return IsLocalToUnit; }
   bool isDefinition() const { return IsDefinition; }
+  DIFlags getFlags() const { return Flags; }
+  bool isArtificial() const { return getFlags() & FlagArtificial; }
   StringRef getDisplayName() const { return getStringOperand(4); }
   StringRef getLinkageName() const { return getStringOperand(5); }
   DIDerivedType *getStaticDataMemberDeclaration() const {

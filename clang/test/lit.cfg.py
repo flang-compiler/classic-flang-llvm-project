@@ -274,3 +274,6 @@ if 'AIXTHREAD_STK' in os.environ:
     config.environment['AIXTHREAD_STK'] = os.environ['AIXTHREAD_STK']
 elif platform.system() == 'AIX':
     config.environment['AIXTHREAD_STK'] = '4194304'
+
+if config.use_classic_flang:
+    config.available_features.add("classic_flang")

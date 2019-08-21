@@ -487,3 +487,6 @@ if 'aix' in config.target_triple:
 # "OBJECT_MODE" to 'any' by default on AIX OS.
 if 'system-aix' in config.available_features:
     config.environment['OBJECT_MODE'] = 'any'
+
+if config.use_classic_flang:
+    config.available_features.add("classic_flang")

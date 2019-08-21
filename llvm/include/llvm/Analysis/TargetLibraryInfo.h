@@ -93,6 +93,7 @@ public:
     DarwinLibSystemM, // Use Darwin's libsystem_m.
     LIBMVEC_X86,      // GLIBC Vector Math library.
     MASSV,            // IBM MASS vector library.
+    PGMATH,           // PGI math library.
     SVML              // Intel short vector math library.
   };
 

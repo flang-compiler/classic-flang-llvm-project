@@ -737,14 +737,14 @@ DIGlobalVariableExpression *DIBuilder::createGlobalVariableExpression(
     DIScope *Context, StringRef Name, StringRef LinkageName, DIFile *F,
     unsigned LineNumber, DIType *Ty, bool IsLocalToUnit, bool isDefined,
     DIExpression *Expr, MDNode *Decl, MDTuple *TemplateParams,
-    uint32_t AlignInBits, DINodeArray Annotations) {
+    DINode::DIFlags Flags, uint32_t AlignInBits, DINodeArray Annotations) {
   checkGlobalVariableScope(Context);
 
   auto *GV = DIGlobalVariable::getDistinct(
       VMContext, cast_or_null<DIScope>(Context), Name, LinkageName, F,
       LineNumber, Ty, IsLocalToUnit, isDefined,
-      cast_or_null<DIDerivedType>(Decl), TemplateParams, AlignInBits,
-      Annotations);
+      cast_or_null<DIDerivedType>(Decl), TemplateParams, Flags,
+      AlignInBits, Annotations);
   if (!Expr)
     Expr = createExpression();
   auto *N = DIGlobalVariableExpression::get(VMContext, GV, Expr);
@@ -755,14 +755,14 @@ DIGlobalVariableExpression *DIBuilder::createGlobalVariableExpression(
 DIGlobalVariable *DIBuilder::createTempGlobalVariableFwdDecl(
     DIScope *Context, StringRef Name, StringRef LinkageName, DIFile *F,
     unsigned LineNumber, DIType *Ty, bool IsLocalToUnit, MDNode *Decl,
-    MDTuple *TemplateParams, uint32_t AlignInBits) {
+    MDTuple *TemplateParams, DINode::DIFlags Flags, uint32_t AlignInBits) {
   checkGlobalVariableScope(Context);
 
   return DIGlobalVariable::getTemporary(
              VMContext, cast_or_null<DIScope>(Context), Name, LinkageName, F,
              LineNumber, Ty, IsLocalToUnit, false,
-             cast_or_null<DIDerivedType>(Decl), TemplateParams, AlignInBits,
-             nullptr)
+             cast_or_null<DIDerivedType>(Decl), TemplateParams, Flags,
+             AlignInBits, nullptr)
       .release();
 }
 
