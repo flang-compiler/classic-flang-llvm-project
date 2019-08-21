@@ -231,6 +231,12 @@ public:
 
   const ToolChain &HostTC;
 
+#ifdef ENABLE_CLASSIC_FLANG
+  void
+  AddFlangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
+                            llvm::opt::ArgStringList &Flang1Args) const override;
+#endif
+
 protected:
   Tool *buildAssembler() const override; // ptxas
   Tool *buildLinker() const override;    // fatbinary (ok, not really a linker)
