@@ -223,6 +223,12 @@ public:
 
   const ToolChain &HostTC;
 
+#ifdef ENABLE_CLASSIC_FLANG
+  void
+  AddFlangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
+                            llvm::opt::ArgStringList &Flang1Args) const override;
+#endif
+
   /// Uses nvptx-arch tool to get arch of the system GPU. Will return error
   /// if unable to find one.
   virtual Expected<SmallVector<std::string>>

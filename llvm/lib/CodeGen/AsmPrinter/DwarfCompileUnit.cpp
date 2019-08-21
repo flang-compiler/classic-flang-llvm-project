@@ -185,6 +185,9 @@ DIE *DwarfCompileUnit::getOrCreateGlobalVariableDIE(
   else
     addGlobalName(GV->getName(), *VariableDIE, DeclContext);
 
+  if (GV->isArtificial())
+    addFlag(*VariableDIE, dwarf::DW_AT_artificial);
+
   addAnnotation(*VariableDIE, GV->getAnnotations());
 
   if (uint32_t AlignInBytes = GV->getAlignInBytes())
