@@ -158,12 +158,18 @@ class DebugLocStream::ListBuilder {
   DbgVariable &V;
   const MachineInstr &MI;
   size_t ListIndex;
+#ifdef ENABLE_CLASSIC_FLANG
+  bool Finalized;
+#endif
   std::optional<uint8_t> TagOffset;
 
 public:
   ListBuilder(DebugLocStream &Locs, DwarfCompileUnit &CU, AsmPrinter &Asm,
               DbgVariable &V, const MachineInstr &MI)
       : Locs(Locs), Asm(Asm), V(V), MI(MI), ListIndex(Locs.startList(&CU)),
+#ifdef ENABLE_CLASSIC_FLANG
+        Finalized(false),
+#endif
         TagOffset(std::nullopt) {}
 
   void setTagOffset(uint8_t TO) {

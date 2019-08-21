@@ -95,6 +95,14 @@ namespace types {
   /// isOpenCL - Is this an "OpenCL" input.
   bool isOpenCL(ID Id);
 
+#ifdef ENABLE_CLASSIC_FLANG
+  /// isFreeFormFortran -- is it a free form layout Fortran input
+  bool isFreeFormFortran(ID Id);
+
+  /// isFixedFormFortran -- is it a fixed form layout Fortran input
+  bool isFixedFormFortran(ID Id);
+#endif
+
   /// isHLSL - Is this an HLSL input.
   bool isHLSL(ID Id);
 

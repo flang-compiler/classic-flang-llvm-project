@@ -38,6 +38,11 @@ void DebugLocStream::finalizeEntry() {
 }
 
 DebugLocStream::ListBuilder::~ListBuilder() {
+#ifdef ENABLE_CLASSIC_FLANG
+  if (Finalized)
+    return;
+  Finalized = true;
+#endif
   if (!Locs.finalizeList(Asm))
     return;
   V.initializeDbgValue(&MI);

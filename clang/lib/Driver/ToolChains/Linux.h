@@ -28,6 +28,9 @@ public:
                                  StringRef SysRoot) const override;
 
   void
+  AddFlangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
+                           llvm::opt::ArgStringList &Flang1Args) const override;
+  void
   AddClangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
                             llvm::opt::ArgStringList &CC1Args) const override;
   void addLibStdCxxIncludePaths(
