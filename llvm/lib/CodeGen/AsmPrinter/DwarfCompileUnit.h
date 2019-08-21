@@ -146,6 +146,14 @@ public:
 
   std::vector<BaseTypeRef> ExprRefedBaseTypes;
 
+private:
+  DenseMap<DIGlobalVariable *, SmallVector<GlobalExpr, 1>> *globalVarMap;
+public:
+  void setGlobalVarMap(
+      DenseMap<DIGlobalVariable *, SmallVector<GlobalExpr, 1>> *p = nullptr) {
+    globalVarMap = p;
+  }
+
   /// Get or create global variable DIE.
   DIE *
   getOrCreateGlobalVariableDIE(const DIGlobalVariable *GV,
