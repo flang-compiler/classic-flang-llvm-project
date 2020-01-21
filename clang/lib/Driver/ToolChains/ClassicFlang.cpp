@@ -69,6 +69,8 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   bool NeedIEEE = true;
   bool NeedFastMath = false;
   bool NeedRelaxedMath = false;
+  bool AssociativeMath = false;
+  bool SignedZeros = true;
 
   // Check number of inputs for sanity. We need at least one input.
   assert(Inputs.size() >= 1 && "Must have at least one input.");
@@ -509,14 +511,18 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   */
   for(Arg *A: Args.filtered(options::OPT_ffast_math, options::OPT_fno_fast_math,
                         options::OPT_Ofast, options::OPT_Kieee_off,
-                        options::OPT_Kieee_on, options::OPT_frelaxed_math)) {
+                        options::OPT_Kieee_on, options::OPT_frelaxed_math,
+                        options::OPT_fassociative_math,
+                        options::OPT_fno_associative_math,
+                        options::OPT_fsigned_zeros,
+                        options::OPT_fno_signed_zeros)) {
     if (A->getOption().matches(options::OPT_ffast_math) ||
         A->getOption().matches(options::OPT_Ofast)) {
       NeedIEEE = NeedRelaxedMath = false;
       NeedFastMath = true;
     } else if (A->getOption().matches(options::OPT_Kieee_on)) {
-      NeedFastMath = NeedRelaxedMath = false;
-      NeedIEEE = true;
+      NeedFastMath = NeedRelaxedMath = AssociativeMath = false;
+      NeedIEEE = SignedZeros = true;
     } else if (A->getOption().matches(options::OPT_frelaxed_math)) {
       NeedFastMath = NeedIEEE = false;
       NeedRelaxedMath = true;
@@ -524,6 +530,16 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
       NeedFastMath = false;
     } else if (A->getOption().matches(options::OPT_Kieee_off)) {
       NeedIEEE = false;
+    } else if (A->getOption().matches(options::OPT_fassociative_math)) {
+      AssociativeMath = true;
+      NeedIEEE = SignedZeros = false;
+    } else if (A->getOption().matches(options::OPT_fno_associative_math)) {
+      AssociativeMath = false;
+    } else if (A->getOption().matches(options::OPT_fsigned_zeros)) {
+      SignedZeros = true;
+      AssociativeMath = false;
+    } else if (A->getOption().matches(options::OPT_fno_signed_zeros)) {
+      SignedZeros = NeedIEEE = false;
     }
     A->claim();
   }
@@ -1007,6 +1023,17 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   LowerCmdArgs.push_back("-y"); LowerCmdArgs.push_back("163"); LowerCmdArgs.push_back("0xc0000000");
   LowerCmdArgs.push_back("-x"); LowerCmdArgs.push_back("189"); LowerCmdArgs.push_back("0x10");
   LowerCmdArgs.push_back("-y"); LowerCmdArgs.push_back("189"); LowerCmdArgs.push_back("0x4000000");
+
+  if (!SignedZeros) {
+    LowerCmdArgs.push_back("-x");
+    LowerCmdArgs.push_back("216");
+    LowerCmdArgs.push_back("0x8");
+  }
+  if (AssociativeMath) {
+    LowerCmdArgs.push_back("-x");
+    LowerCmdArgs.push_back("216");
+    LowerCmdArgs.push_back("0x10");
+  }
 
   // Remove "noinline" attriblute
   LowerCmdArgs.push_back("-x"); LowerCmdArgs.push_back("183"); LowerCmdArgs.push_back("0x10");
