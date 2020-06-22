@@ -46,9 +46,11 @@ const char *types::getTypeName(ID Id) {
 
 types::ID types::getPreprocessedType(ID Id) {
   ID PPT = getInfo(Id).PreprocessedType;
+#ifndef ENABLE_CLASSIC_FLANG
   assert((llvm::is_contained(getInfo(Id).Phases, phases::Preprocess) !=
           (PPT == TY_INVALID)) &&
          "Unexpected Preprocess Type.");
+#endif
   return PPT;
 }
 
@@ -363,14 +365,24 @@ void types::getCompilationPhases(const clang::driver::Driver &Driver,
   types::getCompilationPhases(Id, PhaseList);
 
   // Filter to compiler mode. When the compiler is run as a preprocessor then
-  // compilation is not an option.
+  // compilation is not an option, except when the input is Fortran, for which
+  // preprocessing may be delegated to the classic Flang frontend.
   // -S runs the compiler in Assembly listing mode.
   if (Driver.CCCIsCPP() || DAL.getLastArg(options::OPT_E) ||
       DAL.getLastArg(options::OPT__SLASH_EP) ||
       DAL.getLastArg(options::OPT_M, options::OPT_MM) ||
       DAL.getLastArg(options::OPT__SLASH_P))
+#ifdef ENABLE_CLASSIC_FLANG
+    llvm::copy_if(PhaseList, std::back_inserter(P),
+                  [&](phases::ID Phase) {
+                    return (Phase <= phases::Preprocess ||
+                            (Phase == phases::FortranFrontend &&
+                             Driver.IsFlangMode()));
+                  });
+#else
     llvm::copy_if(PhaseList, std::back_inserter(P),
                   [](phases::ID Phase) { return Phase <= phases::Preprocess; });
+#endif
 
   // --precompile only runs up to precompilation.
   // This is a clang extension and is not compatible with GCC.
