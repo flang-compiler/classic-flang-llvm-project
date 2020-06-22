@@ -55,6 +55,9 @@ public:
     NoLibrary,  // Don't use any vector library.
     Accelerate, // Use the Accelerate framework.
     MASSV,      // IBM MASS vector library.
+#ifdef FLANG_LLVM_EXTENSIONS
+    PGMATH,     // PGI math library.
+#endif
     SVML        // Intel short vector math library.
   };
 
