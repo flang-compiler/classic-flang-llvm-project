@@ -2258,7 +2258,11 @@ void Driver::BuildInputs(const ToolChain &TC, DerivedArgList &Args,
         // stdin must be handled specially.
         if (memcmp(Value, "-", 2) == 0) {
           if (IsFlangMode()) {
+#ifdef ENABLE_CLASSIC_FLANG
+            Ty = types::TY_C;
+#else
             Ty = types::TY_Fortran;
+#endif
           } else {
             // If running with -E, treat as a C input (this changes the
             // builtin macros, for example). This may be overridden by -ObjC
@@ -3619,6 +3623,11 @@ void Driver::handleArguments(Compilation &C, DerivedArgList &Args,
     phases::ID InitialPhase = PL[0];
     if (InitialPhase > FinalPhase) {
       if (InputArg->isClaimed())
+        continue;
+
+      // Fortran input is preprocessed using the frontend.
+      if (InitialPhase == phases::FortranFrontend &&
+          FinalPhase == phases::Preprocess)
         continue;
 
       // Claim here to avoid the more general unused warning.
