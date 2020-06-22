@@ -264,3 +264,6 @@ if 'aix' in config.target_triple:
                       '/ASTMerge/anonymous-fields', '/ASTMerge/injected-class-name-decl'):
         exclude_unsupported_files_for_aix(config.test_source_root + directory)
 
+if config.use_classic_flang:
+    config.available_features.add("classic_flang")
+

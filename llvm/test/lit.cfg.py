@@ -427,3 +427,6 @@ if 'aix' in config.target_triple:
     for directory in ('/CodeGen/X86', '/DebugInfo', '/DebugInfo/X86', '/DebugInfo/Generic', '/LTO/X86', '/Linker'):
         exclude_unsupported_files_for_aix(config.test_source_root + directory)
 
+if config.use_classic_flang:
+    config.available_features.add("classic_flang")
+
