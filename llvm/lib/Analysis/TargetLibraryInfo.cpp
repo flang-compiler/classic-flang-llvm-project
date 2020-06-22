@@ -29,7 +29,9 @@ static cl::opt<TargetLibraryInfoImpl::VectorLibrary> ClVectorLibrary(
                clEnumValN(TargetLibraryInfoImpl::MASSV, "MASSV",
                           "IBM MASS vector library"),
                clEnumValN(TargetLibraryInfoImpl::SVML, "SVML",
-                          "Intel SVML library")));
+                          "Intel SVML library"),
+               clEnumValN(TargetLibraryInfoImpl::PGMATH, "PGMATH",
+                          "PGI math library")));
 
 StringLiteral const TargetLibraryInfoImpl::StandardNames[LibFunc::NumLibFuncs] =
     {
@@ -572,7 +574,6 @@ TargetLibraryInfoImpl::TargetLibraryInfoImpl() {
 TargetLibraryInfoImpl::TargetLibraryInfoImpl(const Triple &T) {
   // Default to everything being available.
   memset(AvailableArray, -1, sizeof(AvailableArray));
-
   initialize(*this, T, StandardNames);
 }
 
@@ -1597,6 +1598,456 @@ void TargetLibraryInfoImpl::addVectorizableFunctionsFromVecLib(
     addVectorizableFunctions(VecFuncs);
     break;
   }
+
+  // NOTE: All routines listed here are not available on all the architectures.
+  // Based on the size of vector registers available and the size of data, the
+  // vector width should be chosen correctly.
+  case PGMATH: {
+    const VecDesc VecFuncs[] = {
+        {"__fd_sin_1", "__fd_sin_2", 2},
+        {"__fd_sin_1", "__fd_sin_4", 4},
+        {"__fd_sin_1", "__fd_sin_8", 8},
+
+        {"__fs_sin_1", "__fs_sin_4", 4},
+        {"__fs_sin_1", "__fs_sin_8", 8},
+        {"__fs_sin_1", "__fs_sin_16", 16},
+
+        {"__pd_sin_1", "__pd_sin_2", 2},
+        {"__pd_sin_1", "__pd_sin_4", 4},
+        {"__pd_sin_1", "__pd_sin_8", 8},
+
+        {"__ps_sin_1", "__ps_sin_4", 4},
+        {"__ps_sin_1", "__ps_sin_8", 8},
+        {"__ps_sin_1", "__ps_sin_16", 16},
+
+        {"__rd_sin_1", "__rd_sin_2", 2},
+        {"__rd_sin_1", "__rd_sin_4", 4},
+        {"__rd_sin_1", "__rd_sin_8", 8},
+
+        {"__rs_sin_1", "__rs_sin_4", 4},
+        {"__rs_sin_1", "__rs_sin_8", 8},
+        {"__rs_sin_1", "__rs_sin_16", 16},
+
+        {"__fd_cos_1", "__fd_cos_2", 2},
+        {"__fd_cos_1", "__fd_cos_4", 4},
+        {"__fd_cos_1", "__fd_cos_8", 8},
+
+        {"__fs_cos_1", "__fs_cos_4", 4},
+        {"__fs_cos_1", "__fs_cos_8", 8},
+        {"__fs_cos_1", "__fs_cos_16", 16},
+
+        {"__pd_cos_1", "__pd_cos_2", 2},
+        {"__pd_cos_1", "__pd_cos_4", 4},
+        {"__pd_cos_1", "__pd_cos_8", 8},
+
+        {"__ps_cos_1", "__ps_cos_4", 4},
+        {"__ps_cos_1", "__ps_cos_8", 8},
+        {"__ps_cos_1", "__ps_cos_16", 16},
+
+        {"__rd_cos_1", "__rd_cos_2", 2},
+        {"__rd_cos_1", "__rd_cos_4", 4},
+        {"__rd_cos_1", "__rd_cos_8", 8},
+
+        {"__rs_cos_1", "__rs_cos_4", 4},
+        {"__rs_cos_1", "__rs_cos_8", 8},
+        {"__rs_cos_1", "__rs_cos_16", 16},
+
+        {"__fd_sincos_1", "__fd_sincos_2", 2},
+        {"__fd_sincos_1", "__fd_sincos_4", 4},
+        {"__fd_sincos_1", "__fd_sincos_8", 8},
+
+        {"__fs_sincos_1", "__fs_sincos_4", 4},
+        {"__fs_sincos_1", "__fs_sincos_8", 8},
+        {"__fs_sincos_1", "__fs_sincos_16", 16},
+
+        {"__pd_sincos_1", "__pd_sincos_2", 2},
+        {"__pd_sincos_1", "__pd_sincos_4", 4},
+        {"__pd_sincos_1", "__pd_sincos_8", 8},
+
+        {"__ps_sincos_1", "__ps_sincos_4", 4},
+        {"__ps_sincos_1", "__ps_sincos_8", 8},
+        {"__ps_sincos_1", "__ps_sincos_16", 16},
+
+        {"__rd_sincos_1", "__rd_sincos_2", 2},
+        {"__rd_sincos_1", "__rd_sincos_4", 4},
+        {"__rd_sincos_1", "__rd_sincos_8", 8},
+
+        {"__rs_sincos_1", "__rs_sincos_4", 4},
+        {"__rs_sincos_1", "__rs_sincos_8", 8},
+        {"__rs_sincos_1", "__rs_sincos_16", 16},
+
+        {"__fd_tan_1", "__fd_tan_2", 2},
+        {"__fd_tan_1", "__fd_tan_4", 4},
+        {"__fd_tan_1", "__fd_tan_8", 8},
+
+        {"__fs_tan_1", "__fs_tan_4", 4},
+        {"__fs_tan_1", "__fs_tan_8", 8},
+        {"__fs_tan_1", "__fs_tan_16", 16},
+
+        {"__pd_tan_1", "__pd_tan_2", 2},
+        {"__pd_tan_1", "__pd_tan_4", 4},
+        {"__pd_tan_1", "__pd_tan_8", 8},
+
+        {"__ps_tan_1", "__ps_tan_4", 4},
+        {"__ps_tan_1", "__ps_tan_8", 8},
+        {"__ps_tan_1", "__ps_tan_16", 16},
+
+        {"__rd_tan_1", "__rd_tan_2", 2},
+        {"__rd_tan_1", "__rd_tan_4", 4},
+        {"__rd_tan_1", "__rd_tan_8", 8},
+
+        {"__rs_tan_1", "__rs_tan_4", 4},
+        {"__rs_tan_1", "__rs_tan_8", 8},
+        {"__rs_tan_1", "__rs_tan_16", 16},
+
+        {"__fd_sinh_1", "__fd_sinh_2", 2},
+        {"__fd_sinh_1", "__fd_sinh_4", 4},
+        {"__fd_sinh_1", "__fd_sinh_8", 8},
+
+        {"__fs_sinh_1", "__fs_sinh_4", 4},
+        {"__fs_sinh_1", "__fs_sinh_8", 8},
+        {"__fs_sinh_1", "__fs_sinh_16", 16},
+
+        {"__pd_sinh_1", "__pd_sinh_2", 2},
+        {"__pd_sinh_1", "__pd_sinh_4", 4},
+        {"__pd_sinh_1", "__pd_sinh_8", 8},
+
+        {"__ps_sinh_1", "__ps_sinh_4", 4},
+        {"__ps_sinh_1", "__ps_sinh_8", 8},
+        {"__ps_sinh_1", "__ps_sinh_16", 16},
+
+        {"__rd_sinh_1", "__rd_sinh_2", 2},
+        {"__rd_sinh_1", "__rd_sinh_4", 4},
+        {"__rd_sinh_1", "__rd_sinh_8", 8},
+
+        {"__rs_sinh_1", "__rs_sinh_4", 4},
+        {"__rs_sinh_1", "__rs_sinh_8", 8},
+        {"__rs_sinh_1", "__rs_sinh_16", 16},
+
+        {"__fd_cosh_1", "__fd_cosh_2", 2},
+        {"__fd_cosh_1", "__fd_cosh_4", 4},
+        {"__fd_cosh_1", "__fd_cosh_8", 8},
+
+        {"__fs_cosh_1", "__fs_cosh_4", 4},
+        {"__fs_cosh_1", "__fs_cosh_8", 8},
+        {"__fs_cosh_1", "__fs_cosh_16", 16},
+
+        {"__pd_cosh_1", "__pd_cosh_2", 2},
+        {"__pd_cosh_1", "__pd_cosh_4", 4},
+        {"__pd_cosh_1", "__pd_cosh_8", 8},
+
+        {"__ps_cosh_1", "__ps_cosh_4", 4},
+        {"__ps_cosh_1", "__ps_cosh_8", 8},
+        {"__ps_cosh_1", "__ps_cosh_16", 16},
+
+        {"__rd_cosh_1", "__rd_cosh_2", 2},
+        {"__rd_cosh_1", "__rd_cosh_4", 4},
+        {"__rd_cosh_1", "__rd_cosh_8", 8},
+
+        {"__rs_cosh_1", "__rs_cosh_4", 4},
+        {"__rs_cosh_1", "__rs_cosh_8", 8},
+        {"__rs_cosh_1", "__rs_cosh_16", 16},
+
+        {"__fd_tanh_1", "__fd_tanh_2", 2},
+        {"__fd_tanh_1", "__fd_tanh_4", 4},
+        {"__fd_tanh_1", "__fd_tanh_8", 8},
+
+        {"__fs_tanh_1", "__fs_tanh_4", 4},
+        {"__fs_tanh_1", "__fs_tanh_8", 8},
+        {"__fs_tanh_1", "__fs_tanh_16", 16},
+
+        {"__pd_tanh_1", "__pd_tanh_2", 2},
+        {"__pd_tanh_1", "__pd_tanh_4", 4},
+        {"__pd_tanh_1", "__pd_tanh_8", 8},
+
+        {"__ps_tanh_1", "__ps_tanh_4", 4},
+        {"__ps_tanh_1", "__ps_tanh_8", 8},
+        {"__ps_tanh_1", "__ps_tanh_16", 16},
+
+        {"__rd_tanh_1", "__rd_tanh_2", 2},
+        {"__rd_tanh_1", "__rd_tanh_4", 4},
+        {"__rd_tanh_1", "__rd_tanh_8", 8},
+
+        {"__rs_tanh_1", "__rs_tanh_4", 4},
+        {"__rs_tanh_1", "__rs_tanh_8", 8},
+        {"__rs_tanh_1", "__rs_tanh_16", 16},
+
+        {"__fd_asin_1", "__fd_asin_2", 2},
+        {"__fd_asin_1", "__fd_asin_4", 4},
+        {"__fd_asin_1", "__fd_asin_8", 8},
+
+        {"__fs_asin_1", "__fs_asin_4", 4},
+        {"__fs_asin_1", "__fs_asin_8", 8},
+        {"__fs_asin_1", "__fs_asin_16", 16},
+
+        {"__pd_asin_1", "__pd_asin_2", 2},
+        {"__pd_asin_1", "__pd_asin_4", 4},
+        {"__pd_asin_1", "__pd_asin_8", 8},
+
+        {"__ps_asin_1", "__ps_asin_4", 4},
+        {"__ps_asin_1", "__ps_asin_8", 8},
+        {"__ps_asin_1", "__ps_asin_16", 16},
+
+        {"__rd_asin_1", "__rd_asin_2", 2},
+        {"__rd_asin_1", "__rd_asin_4", 4},
+        {"__rd_asin_1", "__rd_asin_8", 8},
+
+        {"__rs_asin_1", "__rs_asin_4", 4},
+        {"__rs_asin_1", "__rs_asin_8", 8},
+        {"__rs_asin_1", "__rs_asin_16", 16},
+
+        {"__fd_acos_1", "__fd_acos_2", 2},
+        {"__fd_acos_1", "__fd_acos_4", 4},
+        {"__fd_acos_1", "__fd_acos_8", 8},
+
+        {"__fs_acos_1", "__fs_acos_4", 4},
+        {"__fs_acos_1", "__fs_acos_8", 8},
+        {"__fs_acos_1", "__fs_acos_16", 16},
+
+        {"__pd_acos_1", "__pd_acos_2", 2},
+        {"__pd_acos_1", "__pd_acos_4", 4},
+        {"__pd_acos_1", "__pd_acos_8", 8},
+
+        {"__ps_acos_1", "__ps_acos_4", 4},
+        {"__ps_acos_1", "__ps_acos_8", 8},
+        {"__ps_acos_1", "__ps_acos_16", 16},
+
+        {"__rd_acos_1", "__rd_acos_2", 2},
+        {"__rd_acos_1", "__rd_acos_4", 4},
+        {"__rd_acos_1", "__rd_acos_8", 8},
+
+        {"__rs_acos_1", "__rs_acos_4", 4},
+        {"__rs_acos_1", "__rs_acos_8", 8},
+        {"__rs_acos_1", "__rs_acos_16", 16},
+
+        {"__fd_atan_1", "__fd_atan_2", 2},
+        {"__fd_atan_1", "__fd_atan_4", 4},
+        {"__fd_atan_1", "__fd_atan_8", 8},
+
+        {"__fs_atan_1", "__fs_atan_4", 4},
+        {"__fs_atan_1", "__fs_atan_8", 8},
+        {"__fs_atan_1", "__fs_atan_16", 16},
+
+        {"__pd_atan_1", "__pd_atan_2", 2},
+        {"__pd_atan_1", "__pd_atan_4", 4},
+        {"__pd_atan_1", "__pd_atan_8", 8},
+
+        {"__ps_atan_1", "__ps_atan_4", 4},
+        {"__ps_atan_1", "__ps_atan_8", 8},
+        {"__ps_atan_1", "__ps_atan_16", 16},
+
+        {"__rd_atan_1", "__rd_atan_2", 2},
+        {"__rd_atan_1", "__rd_atan_4", 4},
+        {"__rd_atan_1", "__rd_atan_8", 8},
+
+        {"__rs_atan_1", "__rs_atan_4", 4},
+        {"__rs_atan_1", "__rs_atan_8", 8},
+        {"__rs_atan_1", "__rs_atan_16", 16},
+
+        {"__fd_atan2_1", "__fd_atan2_2", 2},
+        {"__fd_atan2_1", "__fd_atan2_4", 4},
+        {"__fd_atan2_1", "__fd_atan2_8", 8},
+
+        {"__fs_atan2_1", "__fs_atan2_4", 4},
+        {"__fs_atan2_1", "__fs_atan2_8", 8},
+        {"__fs_atan2_1", "__fs_atan2_16", 16},
+
+        {"__pd_atan2_1", "__pd_atan2_2", 2},
+        {"__pd_atan2_1", "__pd_atan2_4", 4},
+        {"__pd_atan2_1", "__pd_atan2_8", 8},
+
+        {"__ps_atan2_1", "__ps_atan2_4", 4},
+        {"__ps_atan2_1", "__ps_atan2_8", 8},
+        {"__ps_atan2_1", "__ps_atan2_16", 16},
+
+        {"__rd_atan2_1", "__rd_atan2_2", 2},
+        {"__rd_atan2_1", "__rd_atan2_4", 4},
+        {"__rd_atan2_1", "__rd_atan2_8", 8},
+
+        {"__rs_atan2_1", "__rs_atan2_4", 4},
+        {"__rs_atan2_1", "__rs_atan2_8", 8},
+        {"__rs_atan2_1", "__rs_atan2_16", 16},
+
+        {"__fd_pow_1", "__fd_pow_2", 2},
+        {"__fd_pow_1", "__fd_pow_4", 4},
+        {"__fd_pow_1", "__fd_pow_8", 8},
+
+        {"__fs_pow_1", "__fs_pow_4", 4},
+        {"__fs_pow_1", "__fs_pow_8", 8},
+        {"__fs_pow_1", "__fs_pow_16", 16},
+
+        {"__pd_pow_1", "__pd_pow_2", 2},
+        {"__pd_pow_1", "__pd_pow_4", 4},
+        {"__pd_pow_1", "__pd_pow_8", 8},
+
+        {"__ps_pow_1", "__ps_pow_4", 4},
+        {"__ps_pow_1", "__ps_pow_8", 8},
+        {"__ps_pow_1", "__ps_pow_16", 16},
+
+        {"__rd_pow_1", "__rd_pow_2", 2},
+        {"__rd_pow_1", "__rd_pow_4", 4},
+        {"__rd_pow_1", "__rd_pow_8", 8},
+
+        {"__rs_pow_1", "__rs_pow_4", 4},
+        {"__rs_pow_1", "__rs_pow_8", 8},
+        {"__rs_pow_1", "__rs_pow_16", 16},
+
+        {"__fs_powi_1", "__fs_powi_4", 4},
+        {"__fs_powi_1", "__fs_powi_8", 8},
+        {"__fs_powi_1", "__fs_powi_16", 16},
+
+        {"__ps_powi_1", "__ps_powi_4", 4},
+        {"__ps_powi_1", "__ps_powi_8", 8},
+        {"__ps_powi_1", "__ps_powi_16", 16},
+
+        {"__rs_powi_1", "__rs_powi_4", 4},
+        {"__rs_powi_1", "__rs_powi_8", 8},
+        {"__rs_powi_1", "__rs_powi_16", 16},
+
+        {"__fd_powi1_1", "__fd_powi1_2", 2},
+        {"__fd_powi1_1", "__fd_powi1_4", 4},
+        {"__fd_powi1_1", "__fd_powi1_8", 8},
+
+        {"__fs_powi1_1", "__fs_powi1_4", 4},
+        {"__fs_powi1_1", "__fs_powi1_8", 8},
+        {"__fs_powi1_1", "__fs_powi1_16", 16},
+
+        {"__pd_powi1_1", "__pd_powi1_2", 2},
+        {"__pd_powi1_1", "__pd_powi1_4", 4},
+        {"__pd_powi1_1", "__pd_powi1_8", 8},
+
+        {"__ps_powi1_1", "__ps_powi1_4", 4},
+        {"__ps_powi1_1", "__ps_powi1_8", 8},
+        {"__ps_powi1_1", "__ps_powi1_16", 16},
+
+        {"__rd_powi1_1", "__rd_powi1_2", 2},
+        {"__rd_powi1_1", "__rd_powi1_4", 4},
+        {"__rd_powi1_1", "__rd_powi1_8", 8},
+
+        {"__rs_powi1_1", "__rs_powi1_4", 4},
+        {"__rs_powi1_1", "__rs_powi1_8", 8},
+        {"__rs_powi1_1", "__rs_powi1_16", 16},
+
+        {"__fd_powk_1", "__fd_powk_2", 2},
+        {"__fd_powk_1", "__fd_powk_4", 4},
+        {"__fd_powk_1", "__fd_powk_8", 8},
+
+        {"__fs_powk_1", "__fs_powk_4", 4},
+        {"__fs_powk_1", "__fs_powk_8", 8},
+        {"__fs_powk_1", "__fs_powk_16", 16},
+
+        {"__pd_powk_1", "__pd_powk_2", 2},
+        {"__pd_powk_1", "__pd_powk_4", 4},
+        {"__pd_powk_1", "__pd_powk_8", 8},
+
+        {"__ps_powk_1", "__ps_powk_4", 4},
+        {"__ps_powk_1", "__ps_powk_8", 8},
+        {"__ps_powk_1", "__ps_powk_16", 16},
+
+        {"__rd_powk_1", "__rd_powk_2", 2},
+        {"__rd_powk_1", "__rd_powk_4", 4},
+        {"__rd_powk_1", "__rd_powk_8", 8},
+
+        {"__rs_powk_1", "__rs_powk_4", 4},
+        {"__rs_powk_1", "__rs_powk_8", 8},
+        {"__rs_powk_1", "__rs_powk_16", 16},
+
+        {"__fd_powk1_1", "__fd_powk1_2", 2},
+        {"__fd_powk1_1", "__fd_powk1_4", 4},
+        {"__fd_powk1_1", "__fd_powk1_8", 8},
+
+        {"__fs_powk1_1", "__fs_powk1_4", 4},
+        {"__fs_powk1_1", "__fs_powk1_8", 8},
+        {"__fs_powk1_1", "__fs_powk1_16", 16},
+
+        {"__pd_powk1_1", "__pd_powk1_2", 2},
+        {"__pd_powk1_1", "__pd_powk1_4", 4},
+        {"__pd_powk1_1", "__pd_powk1_8", 8},
+
+        {"__ps_powk1_1", "__ps_powk1_4", 4},
+        {"__ps_powk1_1", "__ps_powk1_8", 8},
+        {"__ps_powk1_1", "__ps_powk1_16", 16},
+
+        {"__rd_powk1_1", "__rd_powk1_2", 2},
+        {"__rd_powk1_1", "__rd_powk1_4", 4},
+        {"__rd_powk1_1", "__rd_powk1_8", 8},
+
+        {"__rs_powk1_1", "__rs_powk1_4", 4},
+        {"__rs_powk1_1", "__rs_powk1_8", 8},
+        {"__rs_powk1_1", "__rs_powk1_16", 16},
+
+        {"__fd_log10_1", "__fd_log10_2", 2},
+        {"__fd_log10_1", "__fd_log10_4", 4},
+        {"__fd_log10_1", "__fd_log10_8", 8},
+
+        {"__fs_log10_1", "__fs_log10_4", 4},
+        {"__fs_log10_1", "__fs_log10_8", 8},
+        {"__fs_log10_1", "__fs_log10_16", 16},
+
+        {"__pd_log10_1", "__pd_log10_2", 2},
+        {"__pd_log10_1", "__pd_log10_4", 4},
+        {"__pd_log10_1", "__pd_log10_8", 8},
+
+        {"__ps_log10_1", "__ps_log10_4", 4},
+        {"__ps_log10_1", "__ps_log10_8", 8},
+        {"__ps_log10_1", "__ps_log10_16", 16},
+
+        {"__rd_log10_1", "__rd_log10_2", 2},
+        {"__rd_log10_1", "__rd_log10_4", 4},
+        {"__rd_log10_1", "__rd_log10_8", 8},
+
+        {"__rs_log10_1", "__rs_log10_4", 4},
+        {"__rs_log10_1", "__rs_log10_8", 8},
+        {"__rs_log10_1", "__rs_log10_16", 16},
+
+        {"__fd_log_1", "__fd_log_2", 2},
+        {"__fd_log_1", "__fd_log_4", 4},
+        {"__fd_log_1", "__fd_log_8", 8},
+
+        {"__fs_log_1", "__fs_log_4", 4},
+        {"__fs_log_1", "__fs_log_8", 8},
+        {"__fs_log_1", "__fs_log_16", 16},
+
+        {"__pd_log_1", "__pd_log_2", 2},
+        {"__pd_log_1", "__pd_log_4", 4},
+        {"__pd_log_1", "__pd_log_8", 8},
+
+        {"__ps_log_1", "__ps_log_4", 4},
+        {"__ps_log_1", "__ps_log_8", 8},
+        {"__ps_log_1", "__ps_log_16", 16},
+
+        {"__rd_log_1", "__rd_log_2", 2},
+        {"__rd_log_1", "__rd_log_4", 4},
+        {"__rd_log_1", "__rd_log_8", 8},
+
+        {"__rs_log_1", "__rs_log_4", 4},
+        {"__rs_log_1", "__rs_log_8", 8},
+        {"__rs_log_1", "__rs_log_16", 16},
+
+        {"__fs_exp_1", "__fs_exp_4", 4},
+        {"__fs_exp_1", "__fs_exp_8", 8},
+        {"__fs_exp_1", "__fs_exp_16", 16},
+
+        {"__pd_exp_1", "__pd_exp_2", 2},
+        {"__pd_exp_1", "__pd_exp_4", 4},
+        {"__pd_exp_1", "__pd_exp_8", 8},
+
+        {"__ps_exp_1", "__ps_exp_4", 4},
+        {"__ps_exp_1", "__ps_exp_8", 8},
+        {"__ps_exp_1", "__ps_exp_16", 16},
+
+        {"__rd_exp_1", "__rd_exp_2", 2},
+        {"__rd_exp_1", "__rd_exp_4", 4},
+        {"__rd_exp_1", "__rd_exp_8", 8},
+
+        {"__rs_exp_1", "__rs_exp_4", 4},
+        {"__rs_exp_1", "__rs_exp_8", 8},
+        {"__rs_exp_1", "__rs_exp_16", 16}
+    };
+    addVectorizableFunctions(VecFuncs);
+    break;
+  }
+
   case NoLibrary:
     break;
   }
