@@ -84,6 +84,14 @@ namespace types {
   /// isFortran - Is this a Fortran input.
   bool isFortran(ID Id);
 
+#ifdef ENABLE_CLASSIC_FLANG
+  /// isFreeFormFortran -- is it a free form layout Fortran input
+  bool isFreeFormFortran(ID Id);
+
+  /// isFixedFormFortran -- is it a fixed form layout Fortran input
+  bool isFixedFormFortran(ID Id);
+#endif
+
   /// isSrcFile - Is this a source file, i.e. something that still has to be
   /// preprocessed. The logic behind this is the same that decides if the first
   /// compilation phase is a preprocessing one.

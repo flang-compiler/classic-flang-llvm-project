@@ -117,6 +117,23 @@ static void renderRemarksHotnessOptions(const ArgList &Args,
         Twine("--plugin-opt=opt-remarks-hotness-threshold=") + A->getValue()));
 }
 
+/// \brief Determine if Fortran "main" object is needed
+static bool needFortranMain(const Driver &D, const ArgList &Args) {
+  return (needFortranLibs(D, Args)
+       && (!Args.hasArg(options::OPT_Mnomain) ||
+           !Args.hasArg(options::OPT_no_fortran_main)));
+}
+
+/// \brief Determine if Fortran link libraies are needed
+bool tools::needFortranLibs(const Driver &D, const ArgList &Args) {
+  if (D.IsFlangMode() && !Args.hasArg(options::OPT_nostdlib) &&
+      !Args.hasArg(options::OPT_noFlangLibs)) {
+    return true;
+  }
+
+  return false;
+}
+
 void tools::addPathIfExists(const Driver &D, const Twine &Path,
                             ToolChain::path_list &Paths) {
   if (D.getVFS().exists(Path))
@@ -224,6 +241,7 @@ void tools::AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
                             const ArgList &Args, ArgStringList &CmdArgs,
                             const JobAction &JA) {
   const Driver &D = TC.getDriver();
+  bool SeenFirstLinkerInput = false;
 
   // Add extra linker input arguments which are not treated as inputs
   // (constructed via -Xarch_).
@@ -253,6 +271,14 @@ void tools::AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
       continue;
     }
 
+    // Add Fortan "main" before the first linker input
+    if (!SeenFirstLinkerInput) {
+      if (needFortranMain(D, Args)) {
+        CmdArgs.push_back("-lflangmain");
+      }
+      SeenFirstLinkerInput = true;
+    }
+
     // Otherwise, this is a linker input argument.
     const Arg &A = II.getInputArg();
 
@@ -268,6 +294,15 @@ void tools::AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
     } else {
       A.renderAsInput(Args, CmdArgs);
     }
+  }
+
+  if (!SeenFirstLinkerInput && needFortranMain(D, Args)) {
+    CmdArgs.push_back("-lflangmain");
+  }
+
+  // Claim "no Fortran main" arguments
+  for (auto Arg : Args.filtered(options::OPT_no_fortran_main, options::OPT_Mnomain)) {
+    Arg->claim();
   }
 }
 

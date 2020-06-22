@@ -10,6 +10,10 @@ if(WIN32)
   set(system_libs version)
 endif()
 
+if(LLVM_ENABLE_CLASSIC_FLANG)
+  set(CLASSIC_FLANG_FILES ToolChains/ClassicFlang.cpp)
+endif()
+
 add_clang_library(clangDriver
   Action.cpp
   Compilation.cpp
@@ -76,6 +80,7 @@ add_clang_library(clangDriver
   ToolChains/ZOS.cpp
   Types.cpp
   XRayArgs.cpp
+  ${CLASSIC_FLANG_FILES}
 
   DEPENDS
   ClangDriverOptions
