@@ -159,7 +159,6 @@ static void DefineFloatMacros(MacroBuilder &Builder, StringRef Prefix,
   Builder.defineMacro(DefPrefix + "MIN__", Twine(Min)+Ext);
 }
 
-
 /// DefineTypeSize - Emit a macro to the predefines buffer that declares a macro
 /// named MacroName with the max value for a type with width 'TypeWidth' a
 /// signedness of 'isSigned' and with a value suffix of 'ValSuffix' (e.g. LL).

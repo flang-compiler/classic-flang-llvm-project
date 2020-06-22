@@ -90,6 +90,10 @@ def err_drv_invalid_linker_name : Error<
   "invalid linker name in argument '%0'">;
 def err_drv_invalid_rtlib_name : Error<
   "invalid runtime library name in argument '%0'">;
+def err_drv_invalid_allocatable_mode : Error<
+  "invalid semantic mode for assignments to allocatables in argument '%0'">;
+def err_drv_unsupported_fixed_line_length : Error<
+  "unsupported fixed-format line length in argument '%0'">;
 def err_drv_unsupported_rtlib_for_platform : Error<
   "unsupported runtime library '%0' for platform '%1'">;
 def err_drv_invalid_unwindlib_name : Error<
@@ -282,6 +286,8 @@ def err_drv_negative_columns : Error<
     "invalid value '%1' in '%0', value must be 'none' or a positive integer">;
 def err_drv_small_columns : Error<
     "invalid value '%1' in '%0', value must be '%2' or greater">;
+def err_drv_clang_unsupported_minfo_arg : Error<
+  "'%0' option does not support '%1' value">;
 
 def err_drv_invalid_malign_branch_EQ : Error<
   "invalid argument '%0' to -malign-branch=; each element must be one of: %1">;
