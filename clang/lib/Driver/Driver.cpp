@@ -3471,6 +3471,11 @@ void Driver::handleArguments(Compilation &C, DerivedArgList &Args,
       if (InputArg->isClaimed())
         continue;
 
+      // Fortran input is preprocessed using the frontend.
+      if (InitialPhase == phases::FortranFrontend &&
+          FinalPhase == phases::Preprocess)
+        continue;
+
       // Claim here to avoid the more general unused warning.
       InputArg->claim();
 
