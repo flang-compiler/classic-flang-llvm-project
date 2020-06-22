@@ -126,6 +126,10 @@ bool types::isAcceptedByClang(ID Id) {
 
   case TY_Asm:
   case TY_C: case TY_PP_C:
+#ifdef ENABLE_CLASSIC_FLANG
+  case TY_F_FreeForm: case TY_PP_F_FreeForm:
+  case TY_F_FixedForm: case TY_PP_F_FixedForm:
+#endif
   case TY_CL:
   case TY_CUDA: case TY_PP_CUDA:
   case TY_CUDA_DEVICE:
@@ -220,10 +224,34 @@ bool types::isFortran(ID Id) {
   default:
     return false;
 
-  case TY_Fortran: case TY_PP_Fortran:
+#ifdef ENABLE_CLASSIC_FLANG
+  case TY_F_FreeForm:
+  case TY_PP_F_FreeForm:
+  case TY_F_FixedForm:
+  case TY_PP_F_FixedForm:
+#else
+  case TY_Fortran:
+  case TY_PP_Fortran:
+#endif
     return true;
   }
 }
+
+#ifdef ENABLE_CLASSIC_FLANG
+bool types::isFreeFormFortran(ID Id) {
+  if (!isFortran(Id))
+    return false;
+
+  return (Id == TY_F_FreeForm || Id == TY_PP_F_FreeForm);
+}
+
+bool types::isFixedFormFortran(ID Id) {
+  if (!isFortran(Id))
+    return false;
+
+  return (Id == TY_F_FixedForm || Id == TY_PP_F_FixedForm);
+}
+#endif
 
 bool types::isSrcFile(ID Id) {
   return Id != TY_Object && getPreprocessedType(Id) != TY_INVALID;
@@ -233,8 +261,13 @@ types::ID types::lookupTypeForExtension(llvm::StringRef Ext) {
   return llvm::StringSwitch<types::ID>(Ext)
            .Case("c", TY_C)
            .Case("C", TY_CXX)
+#ifdef ENABLE_CLASSIC_FLANG
+           .Case("F", TY_F_FixedForm)
+           .Case("f", TY_PP_F_FixedForm)
+#else
            .Case("F", TY_Fortran)
            .Case("f", TY_PP_Fortran)
+#endif
            .Case("h", TY_CHeader)
            .Case("H", TY_CXXHeader)
            .Case("i", TY_PP_C)
@@ -267,6 +300,20 @@ types::ID types::lookupTypeForExtension(llvm::StringRef Ext) {
            .Case("cui", TY_PP_CUDA)
            .Case("cxx", TY_CXX)
            .Case("CXX", TY_CXX)
+#ifdef ENABLE_CLASSIC_FLANG
+           .Case("for", TY_PP_F_FixedForm)
+           .Case("FOR", TY_PP_F_FixedForm)
+           .Case("fpp", TY_F_FixedForm)
+           .Case("FPP", TY_F_FixedForm)
+           .Case("f90", TY_PP_F_FreeForm)
+           .Case("f95", TY_PP_F_FreeForm)
+           .Case("f03", TY_PP_F_FreeForm)
+           .Case("f08", TY_PP_F_FreeForm)
+           .Case("F90", TY_F_FreeForm)
+           .Case("F95", TY_F_FreeForm)
+           .Case("F03", TY_F_FreeForm)
+           .Case("F08", TY_F_FreeForm)
+#else
            .Case("F90", TY_Fortran)
            .Case("f90", TY_PP_Fortran)
            .Case("F95", TY_Fortran)
@@ -275,6 +322,7 @@ types::ID types::lookupTypeForExtension(llvm::StringRef Ext) {
            .Case("FOR", TY_PP_Fortran)
            .Case("fpp", TY_Fortran)
            .Case("FPP", TY_Fortran)
+#endif
            .Case("gch", TY_PCH)
            .Case("hip", TY_HIP)
            .Case("hpp", TY_CXXHeader)
