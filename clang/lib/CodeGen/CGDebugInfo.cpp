@@ -3623,7 +3623,8 @@ CGDebugInfo::getGlobalVariableForwardDeclaration(const VarDecl *VD) {
   auto Align = getDeclAlignIfRequired(VD, CGM.getContext());
   auto *GV = DBuilder.createTempGlobalVariableFwdDecl(
       DContext, Name, LinkageName, Unit, Line, getOrCreateType(T, Unit),
-      !VD->isExternallyVisible(), nullptr, TemplateParameters, Align);
+      !VD->isExternallyVisible(), nullptr, TemplateParameters,
+      llvm::DINode::FlagZero, Align);
   FwdDeclReplaceMap.emplace_back(
       std::piecewise_construct,
       std::make_tuple(cast<VarDecl>(VD->getCanonicalDecl())),
@@ -4710,7 +4711,7 @@ void CGDebugInfo::EmitGlobalVariable(llvm::GlobalVariable *Var,
         Var->hasLocalLinkage(), true,
         Expr.empty() ? nullptr : DBuilder.createExpression(Expr),
         getOrCreateStaticDataMemberDeclarationOrNull(D), TemplateParameters,
-        Align);
+        llvm::DINode::FlagZero, Align);
     Var->addDebugInfo(GVE);
   }
   DeclCache[D->getCanonicalDecl()].reset(GVE);
@@ -4802,7 +4803,7 @@ void CGDebugInfo::EmitGlobalVariable(const ValueDecl *VD, const APValue &Init) {
   GV.reset(DBuilder.createGlobalVariableExpression(
       DContext, Name, StringRef(), Unit, getLineNumber(VD->getLocation()), Ty,
       true, true, InitExpr, getOrCreateStaticDataMemberDeclarationOrNull(VarD),
-      TemplateParameters, Align));
+      TemplateParameters, llvm::DINode::FlagZero, Align));
 }
 
 void CGDebugInfo::EmitExternalVariable(llvm::GlobalVariable *Var,
@@ -4820,7 +4821,8 @@ void CGDebugInfo::EmitExternalVariable(llvm::GlobalVariable *Var,
   llvm::DIGlobalVariableExpression *GVE =
       DBuilder.createGlobalVariableExpression(
           DContext, Name, StringRef(), Unit, getLineNumber(D->getLocation()),
-          Ty, false, false, nullptr, nullptr, nullptr, Align);
+          Ty, false, false, nullptr, nullptr, nullptr, llvm::DINode::FlagZero,
+          Align);
   Var->addDebugInfo(GVE);
 }
 

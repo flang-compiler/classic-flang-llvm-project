@@ -1339,6 +1339,8 @@ void Verifier::visitDIGlobalVariable(const DIGlobalVariable &N) {
   visitDIVariable(N);
 
   AssertDI(N.getTag() == dwarf::DW_TAG_variable, "invalid tag", &N);
+  AssertDI(!N.getName().empty() || N.isArtificial(),
+           "missing global variable name", &N);
   AssertDI(isType(N.getRawType()), "invalid type ref", &N, N.getRawType());
   // Assert only if the global variable is not an extern
   if (N.isDefinition())

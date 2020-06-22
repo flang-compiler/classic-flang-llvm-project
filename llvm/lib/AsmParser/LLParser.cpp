@@ -5185,7 +5185,7 @@ bool LLParser::parseDITemplateValueParameter(MDNode *&Result, bool IsDistinct) {
 ///                         declaration: !4, align: 8)
 bool LLParser::parseDIGlobalVariable(MDNode *&Result, bool IsDistinct) {
 #define VISIT_MD_FIELDS(OPTIONAL, REQUIRED)                                    \
-  REQUIRED(name, MDStringField, (/* AllowEmpty */ false));                     \
+  OPTIONAL(name, MDStringField, (/* AllowEmpty */ true));                      \
   OPTIONAL(scope, MDField, );                                                  \
   OPTIONAL(linkageName, MDStringField, );                                      \
   OPTIONAL(file, MDField, );                                                   \
@@ -5195,6 +5195,7 @@ bool LLParser::parseDIGlobalVariable(MDNode *&Result, bool IsDistinct) {
   OPTIONAL(isDefinition, MDBoolField, (true));                                 \
   OPTIONAL(templateParams, MDField, );                                         \
   OPTIONAL(declaration, MDField, );                                            \
+  OPTIONAL(flags, DIFlagField, );                                              \
   OPTIONAL(align, MDUnsignedField, (0, UINT32_MAX));
   PARSE_MD_FIELDS();
 #undef VISIT_MD_FIELDS
@@ -5203,7 +5204,8 @@ bool LLParser::parseDIGlobalVariable(MDNode *&Result, bool IsDistinct) {
       GET_OR_DISTINCT(DIGlobalVariable,
                       (Context, scope.Val, name.Val, linkageName.Val, file.Val,
                        line.Val, type.Val, isLocal.Val, isDefinition.Val,
-                       declaration.Val, templateParams.Val, align.Val));
+                       declaration.Val, templateParams.Val, flags.Val,
+                       align.Val));
   return false;
 }
 

@@ -283,6 +283,8 @@ struct SymbolCU {
   DwarfCompileUnit *CU;
 };
 
+class DummyDwarfExpression;
+
 /// The kind of accelerator tables we should emit.
 enum class AccelTableKind {
   Default, ///< Platform default.
@@ -428,6 +430,8 @@ private:
 
   /// Map for tracking Fortran deferred CHARACTER lengths.
   DenseMap<const DIStringType *, unsigned> StringTypeLocMap;
+
+  DenseMap<const DIVariable*,const DIType*> VariableInDependentType;
 
   AddressPool AddrPool;
 
@@ -621,6 +625,12 @@ private:
 
   /// Emit the reference to the section.
   void emitSectionReference(const DwarfCompileUnit &CU);
+
+  /// Populate dependent type variable map
+  void populateDependentTypeMap();
+
+  /// Clear dependent type tracking map
+  void clearDependentTracking() { VariableInDependentType.clear(); }
 
 protected:
   /// Gather pre-function debug information.
