@@ -1165,13 +1165,14 @@ void CodeGenAction::ExecuteAction() {
     std::unique_ptr<llvm::ToolOutputFile> OptRecordFile =
         std::move(*OptRecordFileOrErr);
 
-    EmitBackendOutput(Diagnostics, CI.getHeaderSearchOpts(), CodeGenOpts,
-                      TargetOpts, CI.getLangOpts(),
+    EmitBackendOutput(CI.getDiagnostics(), CI.getHeaderSearchOpts(),
+                      CI.getCodeGenOpts(), TargetOpts, CI.getLangOpts(),
                       CI.getTarget().getDataLayout(), TheModule.get(), BA,
                       std::move(OS));
 
     if (OptRecordFile)
       OptRecordFile->keep();
+
     return;
   }
 
