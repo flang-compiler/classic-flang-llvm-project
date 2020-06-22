@@ -195,6 +195,12 @@ namespace llvm {
                                  unsigned Encoding,
                                  DINode::DIFlags Flags = DINode::FlagZero);
 
+    /// Create debugging information entry for a string
+    /// type.
+    /// \param Name        Type name.
+    /// \param SizeInBits  Size of the type.
+    DIStringType *createStringType(StringRef Name, uint64_t SizeInBits);
+
     /// Create debugging information entry for a qualified
     /// type, e.g. 'const int'.
     /// \param Tag         Tag identifing type, e.g. dwarf::TAG_volatile_type
@@ -484,6 +490,14 @@ namespace llvm {
     DICompositeType *createArrayType(uint64_t Size, uint32_t AlignInBits,
                                      DIType *Ty, DINodeArray Subscripts);
 
+    /// Create debugging information entry for a Fortran array.
+    /// \param Size         Array size.
+    /// \param AlignInBits  Alignment.
+    /// \param Ty           Element type.
+    /// \param Subscripts   Subscripts.
+    DIFortranArrayType *createFortranArrayType(
+        uint64_t Size, uint32_t AlignInBits, DIType *Ty, DINodeArray Subs);
+
     /// Create debugging information entry for a vector type.
     /// \param Size         Array size.
     /// \param AlignInBits  Alignment.
@@ -567,6 +581,12 @@ namespace llvm {
     DISubrange *getOrCreateSubrange(int64_t Lo, int64_t Count);
     DISubrange *getOrCreateSubrange(int64_t Lo, Metadata *CountNode);
 
+    /// Create a descriptor for a value range.  This
+    /// implicitly uniques the values returned.
+    DIFortranSubrange *getOrCreateFortranSubrange(
+        int64_t CLBound, int64_t CUBound, bool NoUBound, Metadata *Lbound,
+        Metadata * Lbndexp, Metadata *Ubound, Metadata * Ubndexp);
+
     /// Create a new descriptor for the specified variable.
     /// \param Context     Variable scope.
     /// \param Name        Name of the variable.
@@ -585,14 +605,16 @@ namespace llvm {
         DIScope *Context, StringRef Name, StringRef LinkageName, DIFile *File,
         unsigned LineNo, DIType *Ty, bool IsLocalToUnit, bool isDefined = true,
         DIExpression *Expr = nullptr, MDNode *Decl = nullptr,
-        MDTuple *TemplateParams = nullptr, uint32_t AlignInBits = 0);
+        MDTuple *TemplateParams = nullptr,
+        DINode::DIFlags Flags = DINode::FlagZero, uint32_t AlignInBits = 0);
 
     /// Identical to createGlobalVariable
     /// except that the resulting DbgNode is temporary and meant to be RAUWed.
     DIGlobalVariable *createTempGlobalVariableFwdDecl(
         DIScope *Context, StringRef Name, StringRef LinkageName, DIFile *File,
-        unsigned LineNo, DIType *Ty, bool IsLocalToUnit, MDNode *Decl = nullptr,
-        MDTuple *TemplateParams= nullptr, uint32_t AlignInBits = 0);
+        unsigned LineNo, DIType *Ty, bool isLocalToUnit, MDNode *Decl = nullptr,
+        MDTuple *TemplateParams = nullptr,
+        DINode::DIFlags Flags = DINode::FlagZero, uint32_t AlignInBits = 0);
 
     /// Create a new descriptor for an auto variable.  This is a local variable
     /// that is not a subprogram parameter.
@@ -717,6 +739,17 @@ namespace llvm {
     DICommonBlock *createCommonBlock(DIScope *Scope, DIGlobalVariable *decl,
                                      StringRef Name, DIFile *File,
                                      unsigned LineNo);
+
+    /// Create common block entry for a Fortran common block
+    /// \param Scope       Scope of this common block
+    /// \param Name        The name of this common block
+    /// \param File        The file this common block is defined
+    /// \param LineNo      Line number
+    /// \param VarList     List of variables that a located in common block
+    /// \param AlignInBits Common block alignment
+    DICommonBlock *createCommonBlock(DIScope *Scope, DIGlobalVariable *decl,
+                                     StringRef Name, DIFile *File,
+                                     unsigned LineNo, uint32_t AlignInBits = 0);
 
     /// This creates new descriptor for a namespace with the specified
     /// parent scope.

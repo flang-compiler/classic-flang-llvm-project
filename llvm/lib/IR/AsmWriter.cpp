@@ -1813,6 +1813,24 @@ static void writeDISubrange(raw_ostream &Out, const DISubrange *N,
   Out << ")";
 }
 
+static void writeDIFortranSubrange(raw_ostream &Out, const DIFortranSubrange *N,
+                                   TypePrinting *TypePrinter,
+                                   SlotTracker *Machine,
+                                   const Module *Context) {
+  Out << "!DIFortranSubrange(";
+  MDFieldPrinter Printer(Out, TypePrinter, Machine, Context);
+  Printer.printInt("constLowerBound", N->getCLowerBound(), false);
+  if (!N->noUpperBound())
+    Printer.printInt("constUpperBound", N->getCUpperBound(), false);
+  Printer.printMetadata("lowerBound", N->getRawLowerBound());
+  Printer.printMetadata("lowerBoundExpression",
+                        N->getRawLowerBoundExpression());
+  Printer.printMetadata("upperBound", N->getRawUpperBound());
+  Printer.printMetadata("upperBoundExpression",
+                        N->getRawUpperBoundExpression());
+  Out << ")";
+}
+
 static void writeDIEnumerator(raw_ostream &Out, const DIEnumerator *N,
                               TypePrinting *, SlotTracker *, const Module *) {
   Out << "!DIEnumerator(";
@@ -1840,6 +1858,23 @@ static void writeDIBasicType(raw_ostream &Out, const DIBasicType *N,
   Printer.printDwarfEnum("encoding", N->getEncoding(),
                          dwarf::AttributeEncodingString);
   Printer.printDIFlags("flags", N->getFlags());
+  Out << ")";
+}
+
+static void writeDIStringType(raw_ostream &Out, const DIStringType *N,
+                             TypePrinting *TypePrinter, SlotTracker *Machine,
+                              const Module *Context) {
+  Out << "!DIStringType(";
+  MDFieldPrinter Printer(Out, TypePrinter, Machine, Context);
+  if (N->getTag() != dwarf::DW_TAG_string_type)
+    Printer.printTag(N);
+  Printer.printString("name", N->getName());
+  Printer.printMetadata("stringLength", N->getRawStringLength());
+  Printer.printMetadata("stringLengthExpression", N->getRawStringLengthExp());
+  Printer.printInt("size", N->getSizeInBits());
+  Printer.printInt("align", N->getAlignInBits());
+  Printer.printDwarfEnum("encoding", N->getEncoding(),
+                         dwarf::AttributeEncodingString);
   Out << ")";
 }
 
@@ -1888,6 +1923,25 @@ static void writeDICompositeType(raw_ostream &Out, const DICompositeType *N,
   Printer.printMetadata("templateParams", N->getRawTemplateParams());
   Printer.printString("identifier", N->getIdentifier());
   Printer.printMetadata("discriminator", N->getRawDiscriminator());
+  Out << ")";
+}
+
+static void writeDIFortranArrayType(
+    raw_ostream &Out, const DIFortranArrayType *N, TypePrinting *TypePrinter,
+    SlotTracker *Machine, const Module *Context) {
+  Out << "!DIFortranArrayType(";
+  MDFieldPrinter Printer(Out, TypePrinter, Machine, Context);
+  Printer.printTag(N);
+  Printer.printString("name", N->getName());
+  Printer.printMetadata("scope", N->getRawScope());
+  Printer.printMetadata("file", N->getRawFile());
+  Printer.printInt("line", N->getLine());
+  Printer.printMetadata("baseType", N->getRawBaseType());
+  Printer.printInt("size", N->getSizeInBits());
+  Printer.printInt("align", N->getAlignInBits());
+  Printer.printInt("offset", N->getOffsetInBits());
+  Printer.printDIFlags("flags", N->getFlags());
+  Printer.printMetadata("elements", N->getRawElements());
   Out << ")";
 }
 
@@ -2104,6 +2158,7 @@ static void writeDIGlobalVariable(raw_ostream &Out, const DIGlobalVariable *N,
   Printer.printBool("isDefinition", N->isDefinition());
   Printer.printMetadata("declaration", N->getRawStaticDataMemberDeclaration());
   Printer.printMetadata("templateParams", N->getRawTemplateParams());
+  Printer.printDIFlags("flags", N->getFlags());
   Printer.printInt("align", N->getAlignInBits());
   Out << ")";
 }

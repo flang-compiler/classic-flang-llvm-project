@@ -1030,11 +1030,13 @@ void DwarfDebug::beginModule() {
         GVMapEntry.push_back({nullptr, Expr});
     }
     DenseSet<DIGlobalVariable *> Processed;
+    CU.setGlobalVarMap(&GVMap);
     for (auto *GVE : CUNode->getGlobalVariables()) {
       DIGlobalVariable *GV = GVE->getVariable();
       if (Processed.insert(GV).second)
         CU.getOrCreateGlobalVariableDIE(GV, sortGlobalExprs(GVMap[GV]));
     }
+    CU.setGlobalVarMap();
 
     for (auto *Ty : CUNode->getEnumTypes()) {
       // The enum types array by design contains pointers to
@@ -1304,6 +1306,56 @@ void DwarfDebug::ensureAbstractEntityIsCreatedIfScoped(DwarfCompileUnit &CU,
     CU.createAbstractEntity(Node, Scope);
 }
 
+DIE *DwarfDebug::getSubrangeDie(const DIFortranSubrange *SR) const {
+  auto I = SubrangeDieMap.find(SR);
+  return (I == SubrangeDieMap.end()) ? nullptr : I->second;
+}
+
+void DwarfDebug::constructSubrangeDie(const DIFortranArrayType *AT,
+                                      DbgVariable &DV,
+                                      DwarfCompileUnit &TheCU) {
+  const DIFortranSubrange *WFS = nullptr;
+  DIExpression *WUEx = nullptr;
+  DIExpression *WLEx = nullptr;
+  const DIVariable *DI = DV.getVariable();
+  DINodeArray Elements = AT->getElements();
+
+  for (unsigned i = 0, N = Elements.size(); i < N; ++i) {
+    DINode *Element = cast<DINode>(Elements[i]);
+    if (const DIFortranSubrange *FS = dyn_cast<DIFortranSubrange>(Element)) {
+      if (DIVariable *UBV = FS->getUpperBound())
+        if (UBV == DI) {
+          WFS = FS;
+          WUEx = FS->getUpperBoundExp();
+        }
+      if (DIVariable *LBV = FS->getLowerBound())
+        if (LBV == DI) {
+          WFS = FS;
+          WLEx = FS->getLowerBoundExp();
+        }
+    }
+    if (WFS) {
+      DIE *Die;
+      auto I = SubrangeDieMap.find(WFS);
+      if (I == SubrangeDieMap.end()) {
+        Die = DIE::get(DIEValueAllocator, dwarf::DW_TAG_subrange_type);
+        SubrangeDieMap[WFS] = Die;
+      } else {
+        Die = I->second;
+      }
+
+      assert(Die);
+      if (WLEx)
+        TheCU.constructDieLocationAddExpr(
+            *Die, dwarf::DW_AT_lower_bound, DV, WLEx);
+      if (WUEx)
+        TheCU.constructDieLocationAddExpr(
+            *Die, dwarf::DW_AT_upper_bound, DV, WUEx);
+      WFS = nullptr;
+    }
+  }
+}
+
 // Collect variable information from side table maintained by MF.
 void DwarfDebug::collectVariableInfoFromMFTable(
     DwarfCompileUnit &TheCU, DenseSet<InlinedEntity> &Processed) {
@@ -1326,6 +1378,11 @@ void DwarfDebug::collectVariableInfoFromMFTable(
     auto RegVar = std::make_unique<DbgVariable>(
                     cast<DILocalVariable>(Var.first), Var.second);
     RegVar->initializeMMI(VI.Expr, VI.Slot);
+    if (VariableInDependentType.count(VI.Var)) {
+      const DIType *DT = VariableInDependentType[VI.Var];
+      if (const DIFortranArrayType *AT = dyn_cast<DIFortranArrayType>(DT))
+        constructSubrangeDie(AT, *RegVar.get(), TheCU);
+    }
     if (DbgVariable *DbgVar = MFVars.lookup(Var))
       DbgVar->addMMIEntry(*RegVar);
     else if (InfoHolder.addScopeVariable(Scope, RegVar.get())) {
@@ -1548,10 +1605,38 @@ DbgEntity *DwarfDebug::createConcreteEntity(DwarfCompileUnit &TheCU,
   return ConcreteEntities.back().get();
 }
 
+void DwarfDebug::populateDependentTypeMap() {
+  for (const auto &I : DbgValues) {
+    InlinedEntity IV = I.first;
+    if (I.second.empty())
+      continue;
+    if (const DIVariable *DIV = dyn_cast<DIVariable>(IV.first)) {
+      if (const DIStringType *ST = dyn_cast<DIStringType>(
+              static_cast<const Metadata *>(DIV->getType())))
+        if (const DIVariable *LV = ST->getStringLength())
+          VariableInDependentType[LV] = ST;
+
+      if (const DIFortranArrayType *AT = dyn_cast<DIFortranArrayType>(
+              static_cast<const Metadata *>(DIV->getType()))) {
+        for (const DINode *S : AT->getElements()) {
+          if (const DIFortranSubrange *FS = dyn_cast<DIFortranSubrange>(S)) {
+            if (const DIVariable *LBV = FS->getLowerBound())
+              VariableInDependentType[LBV] = AT;
+            if (const DIVariable *UBV = FS->getUpperBound())
+              VariableInDependentType[UBV] = AT;
+          }
+        }
+      }
+    }
+  }
+}
+
 // Find variables for each lexical scope.
 void DwarfDebug::collectEntityInfo(DwarfCompileUnit &TheCU,
                                    const DISubprogram *SP,
                                    DenseSet<InlinedEntity> &Processed) {
+  clearDependentTracking();
+  populateDependentTypeMap();
   // Grab the variable info that was squirreled away in the MMI side-table.
   collectVariableInfoFromMFTable(TheCU, Processed);
 
@@ -1566,7 +1651,9 @@ void DwarfDebug::collectEntityInfo(DwarfCompileUnit &TheCU,
       continue;
 
     LexicalScope *Scope = nullptr;
-    const DILocalVariable *LocalVar = cast<DILocalVariable>(IV.first);
+    const DILocalVariable *LocalVar = dyn_cast<DILocalVariable>(IV.first);
+    if (!LocalVar)
+      continue;
     if (const DILocation *IA = IV.second)
       Scope = LScopes.findInlinedScope(LocalVar->getScope(), IA);
     else
@@ -1625,6 +1712,22 @@ void DwarfDebug::collectEntityInfo(DwarfCompileUnit &TheCU,
     // Finalize the entry by lowering it into a DWARF bytestream.
     for (auto &Entry : Entries)
       Entry.finalize(*Asm, List, BT, TheCU);
+    List.finalize();
+
+    if (VariableInDependentType.count(LocalVar)) {
+      const DIType *DT = VariableInDependentType[LocalVar];
+      if (const DIStringType *ST = dyn_cast<DIStringType>(DT)) {
+        unsigned Offset;
+        DbgVariable TVar = {LocalVar, IV.second};
+        DebugLocStream::ListBuilder LB(DebugLocs, TheCU, *Asm, TVar, *MInsn);
+        for (auto &Entry : Entries)
+          Entry.finalize(*Asm, LB, ST, TheCU);
+        LB.finalize();
+        Offset = TVar.getDebugLocListIndex();
+        if (Offset != ~0u)
+          addStringTypeLoc(ST, Offset);
+      }
+    }
   }
 
   // For each InlinedEntity collected from DBG_LABEL instructions, convert to
@@ -2293,6 +2396,33 @@ void DebugLocEntry::finalize(const AsmPrinter &AP,
   DwarfExpr.finalize();
   if (DwarfExpr.TagOffset)
     List.setTagOffset(*DwarfExpr.TagOffset);
+}
+
+inline static DbgValueLoc mkDbgValueLoc(const DIExpression *expr,
+                                        DbgValueLoc &value) {
+  if (value.isInt())
+    return DbgValueLoc(expr, value.getInt());
+  if (value.isLocation())
+    return DbgValueLoc(expr, value.getLoc());
+  if (value.isConstantInt())
+    return DbgValueLoc(expr, value.getConstantInt());
+  assert(value.isConstantFP());
+  return DbgValueLoc(expr, value.getConstantFP());
+}
+
+void DebugLocEntry::finalize(const AsmPrinter &AP,
+                             DebugLocStream::ListBuilder &List,
+                             const DIStringType *ST,
+                             DwarfCompileUnit &TheCU) {
+  DebugLocStream::EntryBuilder Entry(List, Begin, End);
+  BufferByteStreamer Streamer = Entry.getStreamer();
+  DebugLocDwarfExpression DwarfExpr(AP.getDwarfVersion(), Streamer, TheCU);
+  DbgValueLoc &Value = Values[0];
+  assert(!Value.isFragment());
+  assert(Values.size() == 1 && "only fragments may have >1 value");
+  Value = mkDbgValueLoc(ST->getStringLengthExp(), Value);
+  DwarfDebug::emitDebugLocValue(AP, nullptr, Value, DwarfExpr);
+  DwarfExpr.finalize();
 }
 
 void DwarfDebug::emitDebugLocEntryLocation(const DebugLocStream::Entry &Entry,

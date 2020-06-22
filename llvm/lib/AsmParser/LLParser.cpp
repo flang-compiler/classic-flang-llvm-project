@@ -4465,6 +4465,28 @@ bool LLParser::ParseDISubrange(MDNode *&Result, bool IsDistinct) {
   return false;
 }
 
+/// ParseDIFortranSubrange:
+///   ::= !DIFortranSubrange(lowerBound: 2)
+bool LLParser::ParseDIFortranSubrange(MDNode *&Result, bool IsDistinct) {
+#define VISIT_MD_FIELDS(OPTIONAL, REQUIRED)                                    \
+  OPTIONAL(constLowerBound, MDSignedField, (0, INT64_MIN, INT64_MAX));         \
+  OPTIONAL(constUpperBound, MDSignedField, (0, INT64_MIN, INT64_MAX));         \
+  OPTIONAL(lowerBound, MDField, );                                             \
+  OPTIONAL(lowerBoundExpression, MDField, );                                   \
+  OPTIONAL(upperBound, MDField, );                                             \
+  OPTIONAL(upperBoundExpression, MDField, );
+  PARSE_MD_FIELDS();
+#undef VISIT_MD_FIELDS
+
+  Result = GET_OR_DISTINCT(DIFortranSubrange,
+                           (Context, constLowerBound.Val, constUpperBound.Val,
+                            (!constUpperBound.Seen) && (!upperBound.Seen),
+                            lowerBound.Val, lowerBoundExpression.Val,
+                            upperBound.Val, upperBoundExpression.Val));
+  return false;
+}
+
+
 /// ParseDIEnumerator:
 ///   ::= !DIEnumerator(value: 30, isUnsigned: true, name: "SomeKind")
 bool LLParser::ParseDIEnumerator(MDNode *&Result, bool IsDistinct) {
@@ -4503,6 +4525,26 @@ bool LLParser::ParseDIBasicType(MDNode *&Result, bool IsDistinct) {
 
   Result = GET_OR_DISTINCT(DIBasicType, (Context, tag.Val, name.Val, size.Val,
                                          align.Val, encoding.Val, flags.Val));
+  return false;
+}
+
+/// ParseDIStringType:
+///   ::= !DIStringType(name: "character(4)", size: 32, align: 32)
+bool LLParser::ParseDIStringType(MDNode *&Result, bool IsDistinct) {
+#define VISIT_MD_FIELDS(OPTIONAL, REQUIRED)                                    \
+  OPTIONAL(tag, DwarfTagField, (dwarf::DW_TAG_string_type));                   \
+  OPTIONAL(name, MDStringField, );                                             \
+  OPTIONAL(stringLength, MDField, );                                           \
+  OPTIONAL(stringLengthExpression, MDField, );                                 \
+  OPTIONAL(size, MDUnsignedField, (0, UINT64_MAX));                            \
+  OPTIONAL(align, MDUnsignedField, (0, UINT32_MAX));                           \
+  OPTIONAL(encoding, DwarfAttEncodingField, );
+  PARSE_MD_FIELDS();
+#undef VISIT_MD_FIELDS
+
+  Result = GET_OR_DISTINCT(DIStringType, (Context, tag.Val, name.Val,
+      stringLength.Val, stringLengthExpression.Val, size.Val, align.Val,
+      encoding.Val));
   return false;
 }
 
@@ -4580,6 +4622,31 @@ bool LLParser::ParseDICompositeType(MDNode *&Result, bool IsDistinct) {
        size.Val, align.Val, offset.Val, flags.Val, elements.Val,
        runtimeLang.Val, vtableHolder.Val, templateParams.Val, identifier.Val,
        discriminator.Val));
+  return false;
+}
+
+bool LLParser::ParseDIFortranArrayType(MDNode *&Result, bool IsDistinct) {
+#define VISIT_MD_FIELDS(OPTIONAL, REQUIRED)                                    \
+  OPTIONAL(tag, DwarfTagField, (dwarf::DW_TAG_array_type));                    \
+  OPTIONAL(name, MDStringField, );                                             \
+  OPTIONAL(file, MDField, );                                                   \
+  OPTIONAL(line, LineField, );                                                 \
+  OPTIONAL(scope, MDField, );                                                  \
+  OPTIONAL(baseType, MDField, );                                               \
+  OPTIONAL(size, MDUnsignedField, (0, UINT64_MAX));                            \
+  OPTIONAL(align, MDUnsignedField, (0, UINT32_MAX));                           \
+  OPTIONAL(offset, MDUnsignedField, (0, UINT64_MAX));                          \
+  OPTIONAL(flags, DIFlagField, );                                              \
+  OPTIONAL(elements, MDField, );
+  PARSE_MD_FIELDS();
+#undef VISIT_MD_FIELDS
+
+  // Create a new node, and save it in the context if it belongs in the type
+  // map.
+  Result = GET_OR_DISTINCT(
+      DIFortranArrayType,
+      (Context, tag.Val, name.Val, file.Val, line.Val, scope.Val, baseType.Val,
+       size.Val, align.Val, offset.Val, flags.Val, elements.Val));
   return false;
 }
 
@@ -4875,7 +4942,7 @@ bool LLParser::ParseDITemplateValueParameter(MDNode *&Result, bool IsDistinct) {
 ///                         declaration: !4, align: 8)
 bool LLParser::ParseDIGlobalVariable(MDNode *&Result, bool IsDistinct) {
 #define VISIT_MD_FIELDS(OPTIONAL, REQUIRED)                                    \
-  REQUIRED(name, MDStringField, (/* AllowEmpty */ false));                     \
+  OPTIONAL(name, MDStringField, (/* AllowEmpty */ true));                      \
   OPTIONAL(scope, MDField, );                                                  \
   OPTIONAL(linkageName, MDStringField, );                                      \
   OPTIONAL(file, MDField, );                                                   \
@@ -4885,6 +4952,7 @@ bool LLParser::ParseDIGlobalVariable(MDNode *&Result, bool IsDistinct) {
   OPTIONAL(isDefinition, MDBoolField, (true));                                 \
   OPTIONAL(templateParams, MDField, );                                         \
   OPTIONAL(declaration, MDField, );                                            \
+  OPTIONAL(flags, DIFlagField, );                                              \
   OPTIONAL(align, MDUnsignedField, (0, UINT32_MAX));
   PARSE_MD_FIELDS();
 #undef VISIT_MD_FIELDS
@@ -4893,7 +4961,8 @@ bool LLParser::ParseDIGlobalVariable(MDNode *&Result, bool IsDistinct) {
       GET_OR_DISTINCT(DIGlobalVariable,
                       (Context, scope.Val, name.Val, linkageName.Val, file.Val,
                        line.Val, type.Val, isLocal.Val, isDefinition.Val,
-                       declaration.Val, templateParams.Val, align.Val));
+                       declaration.Val, templateParams.Val, flags.Val,
+                       align.Val));
   return false;
 }
 
