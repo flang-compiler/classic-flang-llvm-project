@@ -166,7 +166,8 @@ DIE *DwarfCompileUnit::getOrCreateGlobalVariableDIE(
   } else {
     DeclContext = GV->getScope();
     // Add name and type.
-    addString(*VariableDIE, dwarf::DW_AT_name, GV->getDisplayName());
+    if (!GV->getDisplayName().empty())
+      addString(*VariableDIE, dwarf::DW_AT_name, GV->getDisplayName());
     if (GTy)
       addType(*VariableDIE, GTy);
 
@@ -183,6 +184,9 @@ DIE *DwarfCompileUnit::getOrCreateGlobalVariableDIE(
   else
     addGlobalName(GV->getName(), *VariableDIE, DeclContext);
 
+  if (GV->isArtificial())
+    addFlag(*VariableDIE, dwarf::DW_AT_artificial);
+
   if (uint32_t AlignInBytes = GV->getAlignInBytes())
     addUInt(*VariableDIE, dwarf::DW_AT_alignment, dwarf::DW_FORM_udata,
             AlignInBytes);
@@ -197,7 +201,12 @@ DIE *DwarfCompileUnit::getOrCreateGlobalVariableDIE(
 }
 
 void DwarfCompileUnit::addLocationAttribute(
-    DIE *VariableDIE, const DIGlobalVariable *GV, ArrayRef<GlobalExpr> GlobalExprs) {
+  DIE *VariableDIE, const DIGlobalVariable *GV, ArrayRef<GlobalExpr> GlobalExprs) {
+  addLocationBlock(VariableDIE, dwarf::DW_AT_location, GV, GlobalExprs);
+}
+
+void DwarfCompileUnit::addLocationBlock(DIE *VariableDIE,
+  dwarf::Attribute Attribute, const DIGlobalVariable *GV, ArrayRef<GlobalExpr> GlobalExprs) {
   bool addToAccelTable = false;
   DIELoc *Loc = nullptr;
   Optional<unsigned> NVPTXAddressSpace;
@@ -313,7 +322,7 @@ void DwarfCompileUnit::addLocationAttribute(
             NVPTXAddressSpace ? *NVPTXAddressSpace : NVPTX_ADDR_global_space);
   }
   if (Loc)
-    addBlock(*VariableDIE, dwarf::DW_AT_location, DwarfExpr->finalize());
+    addBlock(*VariableDIE, Attribute, DwarfExpr->finalize());
 
   if (DD->useAllLinkageNames())
     addLinkageName(*VariableDIE, GV->getLinkageName());
@@ -327,6 +336,13 @@ void DwarfCompileUnit::addLocationAttribute(
         DD->useAllLinkageNames())
       DD->addAccelName(*CUNode, GV->getLinkageName(), *VariableDIE);
   }
+}
+
+ArrayRef<DwarfCompileUnit::GlobalExpr>
+DwarfCompileUnit::findGlobalExprList(DIGlobalVariable *GV) {
+  if (globalVarMap)
+    return (*globalVarMap)[GV];
+  return SmallVector<GlobalExpr, 1>();
 }
 
 DIE *DwarfCompileUnit::getOrCreateCommonBlock(

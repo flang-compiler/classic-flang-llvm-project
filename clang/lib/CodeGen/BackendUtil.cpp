@@ -415,6 +415,11 @@ static TargetLibraryInfoImpl *createTLII(llvm::Triple &TargetTriple,
     TLII->addVectorizableFunctionsFromVecLib(
         TargetLibraryInfoImpl::DarwinLibSystemM);
     break;
+#ifdef FLANG_LLVM_EXTENSIONS
+  case CodeGenOptions::PGMATH:
+    TLII->addVectorizableFunctionsFromVecLib(TargetLibraryInfoImpl::PGMATH);
+    break;
+#endif
   default:
     break;
   }

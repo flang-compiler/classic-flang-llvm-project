@@ -112,6 +112,29 @@ class DbgValueLoc {
   SmallVector<DbgValueLocEntry, 2> ValueLocEntries;
 
   bool IsVariadic;
+  /// Type of entry that this represents.
+  enum EntryType {
+    E_Location,
+    E_Integer,
+    E_ConstantFP,
+    E_ConstantInt,
+    E_TargetIndexLocation
+  };
+  enum EntryType EntryKind;
+
+  /// Either a constant,
+  union {
+    int64_t Int;
+    const ConstantFP *CFP;
+    const ConstantInt *CIP;
+  } Constant;
+
+  union {
+    /// Or a location in the machine frame.
+    MachineLocation Loc;
+    /// Or a location from target specific location.
+    TargetIndexLocation TIL;
+  };
 
 public:
   DbgValueLoc(const DIExpression *Expr, ArrayRef<DbgValueLocEntry> Locs)
@@ -146,6 +169,37 @@ public:
     assert(((Expr && Expr->isValid()) || !Loc.isLocation()) &&
            "DBG_VALUE with a machine location must have a valid expression.");
   }
+  DbgValueLoc(const DIExpression *Expr, int64_t i)
+      : Expression(Expr), EntryKind(E_Integer) {
+    Constant.Int = i;
+  }
+  DbgValueLoc(const DIExpression *Expr, const ConstantFP *CFP)
+      : Expression(Expr), EntryKind(E_ConstantFP) {
+    Constant.CFP = CFP;
+  }
+  DbgValueLoc(const DIExpression *Expr, const ConstantInt *CIP)
+      : Expression(Expr), EntryKind(E_ConstantInt) {
+    Constant.CIP = CIP;
+  }
+  DbgValueLoc(const DIExpression *Expr, MachineLocation Loc)
+      : Expression(Expr), EntryKind(E_Location), Loc(Loc) {
+    assert(cast<DIExpression>(Expr)->isValid());
+  }
+  DbgValueLoc(const DIExpression *Expr, TargetIndexLocation Loc)
+      : Expression(Expr), EntryKind(E_TargetIndexLocation), TIL(Loc) {}
+
+  bool isLocation() const { return EntryKind == E_Location; }
+  bool isTargetIndexLocation() const {
+    return EntryKind == E_TargetIndexLocation;
+  }
+  bool isInt() const { return EntryKind == E_Integer; }
+  bool isConstantFP() const { return EntryKind == E_ConstantFP; }
+  bool isConstantInt() const { return EntryKind == E_ConstantInt; }
+  int64_t getInt() const { return Constant.Int; }
+  const ConstantFP *getConstantFP() const { return Constant.CFP; }
+  const ConstantInt *getConstantInt() const { return Constant.CIP; }
+  MachineLocation getLoc() const { return Loc; }
+  TargetIndexLocation getTargetIndexLocation() const { return TIL; }
 
   bool isFragment() const { return getExpression()->isFragment(); }
   bool isEntryVal() const { return getExpression()->isEntryValue(); }
@@ -160,6 +214,15 @@ public:
   LLVM_DUMP_METHOD void dump() const {
     for (DbgValueLocEntry DV : ValueLocEntries)
       DV.dump();
+//    if (isLocation()) {
+//      llvm::dbgs() << "Loc = { reg=" << Loc.getReg() << " ";
+//      if (Loc.isIndirect())
+//        llvm::dbgs() << "+0";
+//      llvm::dbgs() << "} ";
+//    } else if (isConstantInt())
+//      Constant.CIP->dump();
+//    else if (isConstantFP())
+//      Constant.CFP->dump();
     if (Expression)
       Expression->dump();
   }
@@ -227,6 +290,9 @@ public:
                 DebugLocStream::ListBuilder &List,
                 const DIBasicType *BT,
                 DwarfCompileUnit &TheCU);
+
+//  void finalize(const AsmPrinter &AP, DebugLocStream::ListBuilder &List,
+//                const DIStringType *ST, DwarfCompileUnit &TheCU);
 };
 
 /// Compare two DbgValueLocEntries for equality.
@@ -254,6 +320,29 @@ inline bool operator==(const DbgValueLoc &A, const DbgValueLoc &B) {
   return A.ValueLocEntries == B.ValueLocEntries &&
          A.Expression == B.Expression && A.IsVariadic == B.IsVariadic;
 }
+
+//inline bool operator==(const DbgValueLoc &A,
+//                       const DbgValueLoc &B) {
+//  if (A.EntryKind != B.EntryKind)
+//    return false;
+//
+//  if (A.Expression != B.Expression)
+//   return false;
+//
+//  switch (A.EntryKind) {
+//  case DbgValueLoc::E_Location:
+//    return A.Loc == B.Loc;
+//  case DbgValueLoc::E_TargetIndexLocation:
+//    return A.TIL == B.TIL;
+//  case DbgValueLoc::E_Integer:
+//    return A.Constant.Int == B.Constant.Int;
+//  case DbgValueLoc::E_ConstantFP:
+//    return A.Constant.CFP == B.Constant.CFP;
+//  case DbgValueLoc::E_ConstantInt:
+//    return A.Constant.CIP == B.Constant.CIP;
+//  }
+//  llvm_unreachable("unhandled EntryKind");
+//}
 
 /// Compare two fragments based on their offset.
 inline bool operator<(const DbgValueLoc &A,

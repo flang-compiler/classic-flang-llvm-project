@@ -6278,8 +6278,10 @@ void LoopVectorizationCostModel::collectElementTypesForWidening() {
       if (ValuesToIgnore.count(&I))
         continue;
 
-      // Only examine Loads, Stores and PHINodes.
-      if (!isa<LoadInst>(I) && !isa<StoreInst>(I) && !isa<PHINode>(I))
+      // Examine Loads, Stores, PHINodes
+      // Also examine instructions which convert to a float/double
+      if (!isa<LoadInst>(I) && !isa<StoreInst>(I) && !isa<PHINode>(I) &&
+          !isa<FPExtInst>(I) && !isa<SIToFPInst>(I) && !isa<UIToFPInst>(I))
         continue;
 
       // Examine PHI nodes that are reduction variables. Update the type to
