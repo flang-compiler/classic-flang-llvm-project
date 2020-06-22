@@ -139,6 +139,15 @@ public:
 
   std::vector<BaseTypeRef> ExprRefedBaseTypes;
 
+private:
+  DenseMap<DIGlobalVariable *, SmallVector<GlobalExpr, 1>> *globalVarMap;
+public:
+  void setGlobalVarMap(
+      DenseMap<DIGlobalVariable *, SmallVector<GlobalExpr, 1>> *p = nullptr) {
+    globalVarMap = p;
+  }
+  ArrayRef<GlobalExpr> findGlobalExprList(DIGlobalVariable *GV);
+
   /// Get or create global variable DIE.
   DIE *
   getOrCreateGlobalVariableDIE(const DIGlobalVariable *GV,
@@ -149,6 +158,9 @@ public:
 
   void addLocationAttribute(DIE *ToDIE, const DIGlobalVariable *GV,
                             ArrayRef<GlobalExpr> GlobalExprs);
+  void addLocationBlock(DIE *ToDIE, dwarf::Attribute Attr,
+                        const DIGlobalVariable *GV,
+                        ArrayRef<GlobalExpr> GlobalExprs);
 
   /// addLabelAddress - Add a dwarf label attribute data and value using
   /// either DW_FORM_addr or DW_FORM_GNU_addr_index.
@@ -357,6 +369,12 @@ public:
 
   uint64_t getDWOId() const { return DWOId; }
   void setDWOId(uint64_t DwoId) { DWOId = DwoId; }
+
+  void constructDieLocation(DIE &Die, dwarf::Attribute Attribute,
+                            const DbgVariable &DV);
+  void constructDieLocationAddExpr(DIE &Die, dwarf::Attribute Attribute,
+                                   const DbgVariable &DV,
+                                   DIExpression *SubExpr);
 
   bool hasDwarfPubSections() const;
 
