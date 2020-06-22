@@ -58,6 +58,9 @@ public:
     Accelerate, // Use the Accelerate framework.
     LIBMVEC,    // GLIBC vector math library.
     MASSV,      // IBM MASS vector library.
+#ifdef FLANG_LLVM_EXTENSIONS
+    PGMATH,     // PGI math library.
+#endif
     SVML        // Intel short vector math library.
   };
 

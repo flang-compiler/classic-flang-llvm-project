@@ -191,6 +191,9 @@ public:
   const ToolChain &HostTC;
   CudaInstallationDetector CudaInstallation;
 
+  void
+  AddFlangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
+                            llvm::opt::ArgStringList &Flang1Args) const override;
 protected:
   Tool *buildAssembler() const override;  // ptxas
   Tool *buildLinker() const override;     // fatbinary (ok, not really a linker)

@@ -10,6 +10,7 @@
 #include "InputInfo.h"
 #include "ToolChains/Arch/ARM.h"
 #include "ToolChains/Clang.h"
+#include "ToolChains/ClassicFlang.h"
 #include "ToolChains/InterfaceStubs.h"
 #include "ToolChains/Flang.h"
 #include "clang/Basic/ObjCRuntime.h"
@@ -290,6 +291,16 @@ Tool *ToolChain::getAssemble() const {
   return Assemble.get();
 }
 
+Tool *ToolChain::getFortranFrontend() const {
+#ifdef ENABLE_CLASSIC_FLANG
+  if (!FortranFrontend)
+    FortranFrontend.reset(new tools::ClassicFlang(*this));
+  return FortranFrontend.get();
+#else
+  llvm_unreachable("Fortran is not supported by this toolchain");
+#endif
+}
+
 Tool *ToolChain::getClangAs() const {
   if (!Assemble)
     Assemble.reset(new tools::ClangAs(*this));
@@ -364,6 +375,9 @@ Tool *ToolChain::getTool(Action::ActionClass AC) const {
 
   case Action::OffloadWrapperJobClass:
     return getOffloadWrapper();
+
+  case Action::FortranFrontendJobClass:
+    return getFortranFrontend();
   }
 
   llvm_unreachable("Invalid tool kind.");
@@ -633,13 +647,13 @@ std::string ToolChain::GetStaticLibToolPath() const {
 
 types::ID ToolChain::LookupTypeForExtension(StringRef Ext) const {
   types::ID id = types::lookupTypeForExtension(Ext);
-
+#ifndef ENABLE_CLASSIC_FLANG
   // Flang always runs the preprocessor and has no notion of "preprocessed
   // fortran". Here, TY_PP_Fortran is coerced to TY_Fortran to avoid treating
   // them differently.
   if (D.IsFlangMode() && id == types::TY_PP_Fortran)
     id = types::TY_Fortran;
-
+#endif
   return id;
 }
 
@@ -1032,6 +1046,45 @@ void ToolChain::AddFilePathLibArgs(const ArgList &Args,
 void ToolChain::AddCCKextLibArgs(const ArgList &Args,
                                  ArgStringList &CmdArgs) const {
   CmdArgs.push_back("-lcc_kext");
+}
+
+void ToolChain::AddFortranStdlibLibArgs(const ArgList &Args,
+                                    ArgStringList &CmdArgs) const {
+ bool staticFlangLibs = false;
+ bool useOpenMP = false;
+
+  if (Args.hasArg(options::OPT_staticFlangLibs)) {
+    for (auto *A: Args.filtered(options::OPT_staticFlangLibs)) {
+      A->claim();
+      staticFlangLibs = true;
+    }
+  }
+
+  Arg *A = Args.getLastArg(options::OPT_mp, options::OPT_nomp,
+                           options::OPT_fopenmp, options::OPT_fno_openmp);
+  if (A &&
+      (A->getOption().matches(options::OPT_mp) ||
+       A->getOption().matches(options::OPT_fopenmp))) {
+      useOpenMP = true;
+  }
+
+  if (staticFlangLibs)
+    CmdArgs.push_back("-Bstatic");
+  CmdArgs.push_back("-lflang");
+  CmdArgs.push_back("-lflangrti");
+  CmdArgs.push_back("-lpgmath");
+  if (useOpenMP)
+    CmdArgs.push_back("-lomp");
+  else
+    CmdArgs.push_back("-lompstub");
+  if (staticFlangLibs)
+    CmdArgs.push_back("-Bdynamic");
+
+  CmdArgs.push_back("-lm");
+  CmdArgs.push_back("-lrt");
+
+  // Allways link Fortran executables with Pthreads
+  CmdArgs.push_back("-lpthread");
 }
 
 bool ToolChain::isFastMathRuntimeAvailable(const ArgList &Args,
