@@ -72,7 +72,7 @@
 // FVECLIBALL: Accelerate
 // FVECLIBALL-NEXT: MASSV
 // FVECLIBALL-NEXT: none
-// FVECLIBALL-NEXT: SVML
+// FVECLIBALL: SVML
 // RUN: %clang --autocomplete=-fshow-overloads= | FileCheck %s -check-prefix=FSOVERALL
 // FSOVERALL: all
 // FSOVERALL-NEXT: best

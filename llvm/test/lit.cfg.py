@@ -349,3 +349,6 @@ if config.llvm_libxml2_enabled:
 
 if config.have_opt_viewer_modules:
     config.available_features.add('have_opt_viewer_modules')
+
+if config.use_classic_flang:
+    config.available_features.add("classic_flang")

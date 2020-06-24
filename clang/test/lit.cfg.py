@@ -193,3 +193,6 @@ if os.path.exists('/etc/gentoo-release'):
 
 if config.enable_shared:
     config.available_features.add("enable_shared")
+
+if config.use_classic_flang:
+    config.available_features.add("classic_flang")
