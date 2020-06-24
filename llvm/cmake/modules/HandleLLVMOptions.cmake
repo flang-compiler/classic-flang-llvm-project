@@ -77,6 +77,14 @@ if( LLVM_ENABLE_ASSERTIONS )
   endif()
 endif()
 
+option(LLVM_ENABLE_CLASSIC_FLANG "Build support for classic Flang instead of the new built-in Flang" OFF)
+if(LLVM_ENABLE_CLASSIC_FLANG)
+  set(LLVM_ENABLE_CLASSIC_FLANG 1)
+  add_definitions( -DENABLE_CLASSIC_FLANG )
+else()
+  set(LLVM_ENABLE_CLASSIC_FLANG 0)
+endif()
+
 if(LLVM_ENABLE_EXPENSIVE_CHECKS)
   add_definitions(-DEXPENSIVE_CHECKS)
 
