@@ -456,11 +456,6 @@ endif()
 
 add_definitions( -D_GNU_SOURCE )
 
-option(LLVM_ENABLE_CLASSIC_FLANG "Build support for classic Flang instead of the new built-in Flang" OFF)
-if(LLVM_ENABLE_CLASSIC_FLANG)
-  add_definitions( -DENABLE_CLASSIC_FLANG )
-endif()
-
 option(CLANG_BUILD_TOOLS
   "Build the Clang tools. If OFF, just generate build targets." ON)
 

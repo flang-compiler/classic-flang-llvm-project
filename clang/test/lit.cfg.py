@@ -216,3 +216,7 @@ if config.enable_shared:
 # Add a vendor-specific feature.
 if config.clang_vendor_uti:
     config.available_features.add('clang-vendor=' + config.clang_vendor_uti)
+
+if config.use_classic_flang:
+    config.available_features.add("classic_flang")
+
