@@ -183,7 +183,11 @@ public:
 
   /// Whether the driver should invoke flang for fortran inputs.
   /// Other modes fall back to calling gcc which in turn calls gfortran.
+#ifdef ENABLE_CLASSIC_FLANG
+  bool IsFlangMode() const { return true; }
+#else
   bool IsFlangMode() const { return Mode == FlangMode; }
+#endif
 
   /// Only print tool bindings, don't build any jobs.
   unsigned CCCPrintBindings : 1;
