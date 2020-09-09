@@ -4642,7 +4642,7 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
     }
   }
 
-#ifdef FLANG_LLVM_EXTENSIONS
+#ifdef ENABLE_CLASSIC_FLANG
   if (Args.getLastArg(options::OPT_fveclib))
     Args.AddLastArg(CmdArgs, options::OPT_fveclib);
   else
