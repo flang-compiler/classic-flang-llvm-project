@@ -753,7 +753,7 @@ static bool ParseCodeGenArgs(CodeGenOptions &Opts, ArgList &Args, InputKind IK,
       Opts.setVecLib(CodeGenOptions::MASSV);
     else if (Name == "SVML")
       Opts.setVecLib(CodeGenOptions::SVML);
-#ifdef FLANG_LLVM_EXTENSIONS
+#ifdef ENABLE_CLASSIC_FLANG
     else if (Name == "PGMATH")
       Opts.setVecLib(CodeGenOptions::PGMATH);
 #endif
