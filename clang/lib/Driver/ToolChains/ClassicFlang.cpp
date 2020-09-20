@@ -327,28 +327,34 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     LowerCmdArgs.push_back("0x8");
   }
 
-  // -g should produce DWARFv2
-  for (auto Arg : Args.filtered(options::OPT_g_Flag)) {
-    Arg->claim();
-    CommonCmdArgs.push_back("-x");
-    CommonCmdArgs.push_back("120");
-    CommonCmdArgs.push_back("0x200");
-  }
+  // Last argument of -g/-gdwarfX should be taken.
+  Arg *GArg = Args.getLastArg(options::OPT_g_Flag);
+  Arg *GDwarfArg = Args.getLastArg(options::OPT_gdwarf_2,
+                                   options::OPT_gdwarf_3,
+                                   options::OPT_gdwarf_4,
+                                   options::OPT_gdwarf_5);
 
-  // -gdwarf-2
-  for (auto Arg : Args.filtered(options::OPT_gdwarf_2)) {
-    Arg->claim();
-    CommonCmdArgs.push_back("-x");
-    CommonCmdArgs.push_back("120");
-    CommonCmdArgs.push_back("0x200");
-  }
+  if (GArg || GDwarfArg) {
 
-  // -gdwarf-3
-  for (auto Arg : Args.filtered(options::OPT_gdwarf_3)) {
-    Arg->claim();
+    for (auto Arg : Args.filtered(options::OPT_g_Flag, options::OPT_gdwarf_2,
+                                  options::OPT_gdwarf_3, options::OPT_gdwarf_4,
+                                  options::OPT_gdwarf_5)) {
+      Arg->claim();
+    }
+
     CommonCmdArgs.push_back("-x");
     CommonCmdArgs.push_back("120");
-    CommonCmdArgs.push_back("0x4000");
+
+    if (!GDwarfArg) // -g without -gdwarf-X produces default (DWARFv4)
+      CommonCmdArgs.push_back("0x1000000");
+    else if (GDwarfArg->getOption().matches(options::OPT_gdwarf_2)) // -gdwarf-2
+      CommonCmdArgs.push_back("0x200");
+    else if (GDwarfArg->getOption().matches(options::OPT_gdwarf_3)) // -gdwarf-3
+      CommonCmdArgs.push_back("0x4000");
+    else if (GDwarfArg->getOption().matches(options::OPT_gdwarf_4)) // -gdwarf-4
+      CommonCmdArgs.push_back("0x1000000");
+    else if (GDwarfArg->getOption().matches(options::OPT_gdwarf_5)) // -gdwarf-5
+      CommonCmdArgs.push_back("0x2000000");
   }
 
   // -Mipa has no effect
