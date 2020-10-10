@@ -1381,7 +1381,7 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     break;
   }
   case bitc::METADATA_COMPOSITE_TYPE: {
-    if (Record.size() < 16 || Record.size() > 20)
+    if (Record.size() < 16 || Record.size() > 21)
       return error("Invalid record");
 
     // If we have a UUID and this is not a forward declaration, lookup the
@@ -1408,6 +1408,7 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
     Metadata *DataLocation = nullptr;
     Metadata *Associated = nullptr;
     Metadata *Allocated = nullptr;
+    Metadata *Rank = nullptr;
     auto *Identifier = getMDString(Record[15]);
     // If this module is being parsed so that it can be ThinLTO imported
     // into another module, composite types only need to be imported
@@ -1436,6 +1437,9 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
         Associated = getMDOrNull(Record[18]);
         Allocated = getMDOrNull(Record[19]);
       }
+      if (Record.size() > 20) {
+        Rank = getMDOrNull(Record[20]);
+      }
     }
     DICompositeType *CT = nullptr;
     if (Identifier)
@@ -1443,7 +1447,7 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
           Context, *Identifier, Tag, Name, File, Line, Scope, BaseType,
           SizeInBits, AlignInBits, OffsetInBits, Flags, Elements, RuntimeLang,
           VTableHolder, TemplateParams, Discriminator, DataLocation, Associated,
-          Allocated);
+          Allocated, Rank);
 
     // Create a node if we didn't get a lazy ODR type.
     if (!CT)
@@ -1452,7 +1456,7 @@ Error MetadataLoader::MetadataLoaderImpl::parseOneMetadata(
                             SizeInBits, AlignInBits, OffsetInBits, Flags,
                             Elements, RuntimeLang, VTableHolder, TemplateParams,
                             Identifier, Discriminator, DataLocation, Associated,
-                            Allocated));
+                            Allocated, Rank));
     if (!IsNotUsedInTypeRef && Identifier)
       MetadataList.addTypeRef(*Identifier, *cast<DICompositeType>(CT));
 
