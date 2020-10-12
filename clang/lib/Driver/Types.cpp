@@ -376,7 +376,7 @@ void types::getCompilationPhases(const clang::driver::Driver &Driver,
     llvm::copy_if(PhaseList, std::back_inserter(P),
                   [&](phases::ID Phase) {
                     return (Phase <= phases::Preprocess ||
-                            (Phase == phases::FortranFrontend &&
+                            (Phase == phases::Compile &&
                              Driver.IsFlangMode()));
                   });
 #else
