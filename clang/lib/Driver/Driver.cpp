@@ -291,42 +291,18 @@ phases::ID Driver::getFinalPhase(const DerivedArgList &DAL,
 
   // -{E,EP,P,M,MM} only run the preprocessor.
   if (CCCIsCPP() || (PhaseArg = DAL.getLastArg(options::OPT_E)) ||
-#ifdef ENABLE_CLASSIC_FLANG
-      (PhaseArg = DAL.getLastArg(options::OPT_fsyntax_only)) ||
-#endif
       (PhaseArg = DAL.getLastArg(options::OPT__SLASH_EP)) ||
       (PhaseArg = DAL.getLastArg(options::OPT_M, options::OPT_MM)) ||
       (PhaseArg = DAL.getLastArg(options::OPT__SLASH_P))) {
-#ifdef ENABLE_CLASSIC_FLANG
-    // -fsyntax-only or -E stops Fortran compilation after FortranFrontend
-    if (IsFlangMode() && (DAL.getLastArg(options::OPT_E) ||
-      DAL.getLastArg(options::OPT_fsyntax_only))) {
-      FinalPhase = phases::FortranFrontend;
-
-      // if not Fortran, fsyntax_only implies 'Compile' is the FinalPhase
-    } else if (DAL.getLastArg(options::OPT_fsyntax_only)) {
-      FinalPhase = phases::Compile;
-
-      // everything else has 'Preprocess' as its FinalPhase
-    } else {
-      FinalPhase = phases::Preprocess;
-    }
-#else
     FinalPhase = phases::Preprocess;
-#endif
 
   // --precompile only runs up to precompilation.
   } else if ((PhaseArg = DAL.getLastArg(options::OPT__precompile))) {
     FinalPhase = phases::Precompile;
 
-#ifdef ENABLE_CLASSIC_FLANG
-  // -{analyze,emit-ast} only run up to the compiler.
-  } else if ((PhaseArg = DAL.getLastArg(options::OPT_print_supported_cpus)) ||
-#else
   // -{fsyntax-only,-analyze,emit-ast} only run up to the compiler.
   } else if ((PhaseArg = DAL.getLastArg(options::OPT_fsyntax_only)) ||
              (PhaseArg = DAL.getLastArg(options::OPT_print_supported_cpus)) ||
-#endif
              (PhaseArg = DAL.getLastArg(options::OPT_module_file_info)) ||
              (PhaseArg = DAL.getLastArg(options::OPT_verify_pch)) ||
              (PhaseArg = DAL.getLastArg(options::OPT_rewrite_objc)) ||
@@ -3471,10 +3447,13 @@ void Driver::handleArguments(Compilation &C, DerivedArgList &Args,
       if (InputArg->isClaimed())
         continue;
 
-      // Fortran input is preprocessed using the frontend.
-      if (InitialPhase == phases::FortranFrontend &&
+#ifdef ENABLE_CLASSIC_FLANG
+      // If the input is detected as already preprocessed (e.g. has the .f95
+      // extension), and the user specifies -E, preprocess the file anyway.
+      if (IsFlangMode() && InitialPhase == phases::Compile &&
           FinalPhase == phases::Preprocess)
         continue;
+#endif
 
       // Claim here to avoid the more general unused warning.
       InputArg->claim();
@@ -3838,13 +3817,6 @@ Action *Driver::ConstructPhaseAction(
                                                            ModName);
     return C.MakeAction<PrecompileJobAction>(Input, OutputTy);
   }
-  case phases::FortranFrontend: {
-    if (Args.hasArg(options::OPT_fsyntax_only))
-      return C.MakeAction<FortranFrontendJobAction>(Input,
-                                                    types::TY_Nothing);
-    return C.MakeAction<FortranFrontendJobAction>(Input,
-                                                  types::TY_LLVM_IR);
-  }
   case phases::Compile: {
     if (Args.hasArg(options::OPT_fsyntax_only))
       return C.MakeAction<CompileJobAction>(Input, types::TY_Nothing);
@@ -3863,6 +3835,10 @@ Action *Driver::ConstructPhaseAction(
       return C.MakeAction<CompileJobAction>(Input, types::TY_ModuleFile);
     if (Args.hasArg(options::OPT_verify_pch))
       return C.MakeAction<VerifyPCHJobAction>(Input, types::TY_Nothing);
+#ifdef ENABLE_CLASSIC_FLANG
+    if (IsFlangMode())
+      return C.MakeAction<CompileJobAction>(Input, types::TY_LLVM_IR);
+#endif
     return C.MakeAction<CompileJobAction>(Input, types::TY_LLVM_BC);
   }
   case phases::Backend: {
@@ -4268,6 +4244,10 @@ class ToolSelector final {
     // Get compiler tool.
     const Tool *T = TC.SelectTool(*CJ);
     if (!T)
+      return nullptr;
+
+    // Classic Flang is not integrated with the backend.
+    if (C.getDriver().IsFlangMode() && !T->hasIntegratedAssembler())
       return nullptr;
 
     if (T->canEmitIR() && ((SaveTemps && !InputIsBitcode) || EmbedBitcode))
@@ -5302,7 +5282,11 @@ bool Driver::ShouldUseFlangCompiler(const JobAction &JA) const {
     return false;
 
   // And say "no" if this is not a kind of action flang understands.
-  if (!isa<PreprocessJobAction>(JA) && !isa<CompileJobAction>(JA) && !isa<BackendJobAction>(JA))
+  if (!isa<PreprocessJobAction>(JA) && !isa<CompileJobAction>(JA)
+#ifndef ENABLE_CLASSIC_FLANG
+      && !isa<BackendJobAction>(JA)
+#endif
+  )
     return false;
 
   return true;
