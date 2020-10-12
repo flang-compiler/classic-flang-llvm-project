@@ -382,7 +382,7 @@ types::getCompilationPhases(const clang::driver::Driver &Driver,
       DAL.getLastArg(options::OPT__SLASH_P))
 #ifdef ENABLE_CLASSIC_FLANG
     if (Driver.IsFlangMode())
-      LastPhase = phases::FortranFrontend;
+      LastPhase = phases::Compile;
     else
       LastPhase = phases::Preprocess;
 #else

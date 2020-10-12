@@ -264,7 +264,11 @@ Tool *ToolChain::getClang() const {
 
 Tool *ToolChain::getFlang() const {
   if (!Flang)
+#ifdef ENABLE_CLASSIC_FLANG
+    Flang.reset(new tools::ClassicFlang(*this));
+#else
     Flang.reset(new tools::Flang(*this));
+#endif
   return Flang.get();
 }
 
@@ -284,16 +288,6 @@ Tool *ToolChain::getAssemble() const {
   if (!Assemble)
     Assemble.reset(buildAssembler());
   return Assemble.get();
-}
-
-Tool *ToolChain::getFortranFrontend() const {
-#ifdef ENABLE_CLASSIC_FLANG
-  if (!FortranFrontend)
-    FortranFrontend.reset(new tools::ClassicFlang(*this));
-  return FortranFrontend.get();
-#else
-  llvm_unreachable("Fortran is not supported by this toolchain");
-#endif
 }
 
 Tool *ToolChain::getClangAs() const {
@@ -370,9 +364,6 @@ Tool *ToolChain::getTool(Action::ActionClass AC) const {
 
   case Action::OffloadWrapperJobClass:
     return getOffloadWrapper();
-
-  case Action::FortranFrontendJobClass:
-    return getFortranFrontend();
   }
 
   llvm_unreachable("Invalid tool kind.");
