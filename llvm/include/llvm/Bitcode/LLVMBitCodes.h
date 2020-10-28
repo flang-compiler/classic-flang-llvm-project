@@ -342,6 +342,7 @@ enum MetadataCodes {
   METADATA_FORTRAN_ARRAY_TYPE = 42, // [distinct, name, [bounds ...], ...]
   METADATA_FORTRAN_SUBRANGE = 43, // [distinct, lbound, lbnde, ubound, ubnde]
   METADATA_COMMON_BLOCK = 44,     // [distinct, scope, name, variable,...]
+  METADATA_GENERIC_SUBRANGE = 45 // [distinct, count, lo, up, stride]
 };
 
 // The constants block (CONSTANTS_BLOCK_ID) describes emission for each
