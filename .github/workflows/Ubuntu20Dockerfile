@@ -1,0 +1,64 @@
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/London
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+      curl \
+      gcc \
+      g++ \
+      make \
+      htop \
+      jq \
+      ninja-build \
+      tmux \
+      git \
+      wget \
+      patch \
+      python3-minimal \
+      python-is-python3 \
+      libdata-dumper-simple-perl \
+      unzip
+
+RUN apt-get install -y software-properties-common && \
+    apt-get update && \
+    add-apt-repository ppa:ubuntu-toolchain-r/test && \
+    apt-get install -f -y gcc-9 g++-9 && \
+    apt-get install -f -y gcc-10 g++-10 && \
+    echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main' | tee -a /etc/apt/sources.list.d/llvm.list && \
+    echo 'deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main' | tee -a /etc/apt/sources.list.d/llvm.list && \
+    wget -q -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
+    apt-get update && \
+    apt-get install -f -y llvm-9 clang-9 && \
+    apt-get install -f -y llvm-10 clang-10 && \
+    apt-get install -f -y llvm-11 clang-11
+
+RUN cd /opt && \
+    wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0-linux-aarch64.sh && \
+    /bin/sh cmake-3.20.0-linux-aarch64.sh --skip-license --include-subdir && \
+    ln -s /opt/cmake-3.20.0-linux-aarch64/bin/* /usr/local/bin
+
+RUN ln -s /usr/bin/ninja-build /usr/local/bin/ninja
+
+RUN mkdir /home/github/
+
+RUN mkdir /home/root && cd home/root && \
+    git clone --depth 1 --single-branch --branch release_12x https://github.com/flang-compiler/classic-flang-llvm-project.git classic-flang-llvm-project && \
+    cd classic-flang-llvm-project && \
+    mkdir -p build && cd build && \
+    cmake -DLLVM_TARGETS_TO_BUILD=AArch64 \
+             -DCMAKE_INSTALL_PREFIX=/home/github/usr/local \
+             -DCMAKE_BUILD_TYPE=Release \
+             -DCMAKE_C_COMPILER=/usr/bin/gcc-10 \
+             -DCMAKE_CXX_COMPILER=/usr/bin/g++-10 \
+             -DLLVM_ENABLE_PROJECTS="clang;openmp" \
+             -DLLVM_ENABLE_CLASSIC_FLANG=ON \
+             ../llvm && \
+    make -j`nproc --ignore=1` && \
+    make install && \
+    make clean
+
+RUN useradd github && \
+    chown -R github:github /home/github
+USER github
