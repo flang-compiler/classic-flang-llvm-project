@@ -24,8 +24,8 @@ concurrency:
 
 jobs:
   check_clang:
-    name: Test clang,lldb,libclc
+    name: Test clang
     uses: llvm/llvm-project/.github/workflows/llvm-project-tests.yml@release/14.x
     with:
       build_target: check-clang
-      projects: clang;lldb;libclc
+      projects: clang
