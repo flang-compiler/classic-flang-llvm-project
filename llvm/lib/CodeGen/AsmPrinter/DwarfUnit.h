@@ -312,6 +312,8 @@ private:
   void constructTypeDIE(DIE &Buffer, const DISubroutineType *CTy);
   void constructSubrangeDIE(DIE &Buffer, const DISubrange *SR, DIE *IndexTy);
   void constructFortranSubrangeDIE(DIE &Buffer, const DIFortranSubrange *SR);
+  void constructGenericSubrangeDIE(DIE &Buffer, const DIGenericSubrange *SR,
+                                   DIE *IndexTy);
   void constructArrayTypeDIE(DIE &Buffer, const DICompositeType *CTy);
   void constructArrayTypeDIE(DIE &Buffer, const DIFortranArrayType *ATy);
   void constructEnumTypeDIE(DIE &Buffer, const DICompositeType *CTy);
