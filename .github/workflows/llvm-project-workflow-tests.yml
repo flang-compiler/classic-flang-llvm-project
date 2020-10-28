@@ -11,7 +11,7 @@ permissions:
 on:
   pull_request:
     branches:
-      - 'main'
+      - 'release_*x'
     paths:
       - '.github/workflows/llvm-project-tests.yml'
       - '.github/workflows/llvm-project-workflow-tests.yml'
@@ -24,9 +24,9 @@ concurrency:
 
 jobs:
   llvm-test:
-    if: github.repository_owner == 'llvm'
+    if: github.repository_owner == 'flang-compiler'
     name: Build and Test
     uses: ./.github/workflows/llvm-project-tests.yml
     with:
       build_target: check-all
-      projects: clang;lld;libclc;lldb
+      projects: clang;openmp
