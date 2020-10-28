@@ -5,10 +5,10 @@
 
 ! RUN: %clang --driver-mode=flang -target x86_64-unknown-linux-gnu -c %s -### 2>&1 \
 ! RUN:   | FileCheck --check-prefix=CHECK-OBJECT %s
-! CHECK-OBJECT: "flang1"
+! CHECK-OBJECT: "{{.*}}flang1"
 ! CHECK-OBJECT-NOT: "-preprocess"
 ! CHECK-OBJECT-SAME: "-freeform"
-! CHECK-OBJECT-NEXT: "flang2"
+! CHECK-OBJECT-NEXT: "{{.*}}flang2"
 ! CHECK-OBJECT-SAME: "-asm" [[LLFILE:.*.ll]]
 ! CHECK-OBJECT-NEXT: {{clang.* "-cc1"}}
 ! CHECK-OBJECT-SAME: "-o" "classic-flang.o"
@@ -20,12 +20,12 @@
 
 ! RUN: %clang --driver-mode=flang -target x86_64-unknown-linux-gnu -E %s -### 2>&1 \
 ! RUN:   | FileCheck --check-prefix=CHECK-PREPROCESS %s
-! CHECK-PREPROCESS: "flang1"
+! CHECK-PREPROCESS: "{{.*}}flang1"
 ! CHECK-PREPROCESS-SAME: "-preprocess"
 ! CHECK-PREPROCESS-SAME: "-es"
 ! CHECK-PREPROCESS-SAME: "-pp"
-! CHECK-PREPROCESS-NOT: "flang1"
-! CHECK-PREPROCESS-NOT: "flang2"
+! CHECK-PREPROCESS-NOT: "{{.*}}flang1"
+! CHECK-PREPROCESS-NOT: "{{.*}}flang2"
 ! CHECK-PREPROCESS-NOT: {{clang.* "-cc1"}}
 ! CHECK-PREPROCESS-NOT: {{clang.* "-cc1as"}}
 
@@ -34,8 +34,8 @@
 
 ! RUN: %clang --driver-mode=flang -target x86_64-unknown-linux-gnu -integrated-as -S %s -### 2>&1 \
 ! RUN:   | FileCheck --check-prefix=CHECK-ASM %s
-! CHECK-ASM: "flang1"
-! CHECK-ASM-NEXT: "flang2"
+! CHECK-ASM: "{{.*}}flang1"
+! CHECK-ASM-NEXT: "{{.*}}flang2"
 ! CHECK-ASM-SAME: "-asm" [[LLFILE:.*.ll]]
 ! CHECK-ASM-NEXT: {{clang.* "-cc1"}}
 ! CHECK-ASM-SAME: "-o" "classic-flang.s"

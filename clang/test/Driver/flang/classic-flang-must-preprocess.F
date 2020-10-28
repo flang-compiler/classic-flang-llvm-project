@@ -5,8 +5,8 @@
 
 ! RUN: %clang --driver-mode=flang -target x86_64-unknown-linux-gnu -c %s -### 2>&1 \
 ! RUN:   | FileCheck %s
-! CHECK: "flang1"
+! CHECK: "{{.*}}flang1"
 ! CHECK-SAME: "-preprocess"
 ! CHECK-SAME: "-nofreeform"
-! CHECK-NEXT: "flang2"
+! CHECK-NEXT: "{{.*}}flang2"
 ! CHECK-NEXT: {{clang.* "-cc1"}}
