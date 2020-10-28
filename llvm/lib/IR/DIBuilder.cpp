@@ -664,6 +664,18 @@ DIFortranSubrange *DIBuilder::getOrCreateFortranSubrange(
   return DIFortranSubrange::get(VMContext, CLB, CUB, NUB, LB, LBE, UB, UBE);
 }
 
+DIGenericSubrange *DIBuilder::getOrCreateGenericSubrange(
+    DIGenericSubrange::BoundType CountNode, DIGenericSubrange::BoundType LB,
+    DIGenericSubrange::BoundType UB, DIGenericSubrange::BoundType Stride) {
+  auto ConvToMetadata = [&](DIGenericSubrange::BoundType Bound) -> Metadata * {
+    return Bound.is<DIExpression *>() ? (Metadata *)Bound.get<DIExpression *>()
+                                      : (Metadata *)Bound.get<DIVariable *>();
+  };
+  return DIGenericSubrange::get(VMContext, ConvToMetadata(CountNode),
+                                ConvToMetadata(LB), ConvToMetadata(UB),
+                                ConvToMetadata(Stride));
+}
+
 static void checkGlobalVariableScope(DIScope *Context) {
 #ifndef NDEBUG
   if (auto *CT =

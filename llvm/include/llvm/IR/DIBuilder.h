@@ -596,6 +596,12 @@ namespace llvm {
         int64_t CLBound, int64_t CUBound, bool NoUBound, Metadata *Lbound,
         Metadata * Lbndexp, Metadata *Ubound, Metadata * Ubndexp);
 
+    DIGenericSubrange *
+    getOrCreateGenericSubrange(DIGenericSubrange::BoundType Count,
+                               DIGenericSubrange::BoundType LowerBound,
+                               DIGenericSubrange::BoundType UpperBound,
+                               DIGenericSubrange::BoundType Stride);
+
     /// Create a new descriptor for the specified variable.
     /// \param Context     Variable scope.
     /// \param Name        Name of the variable.
