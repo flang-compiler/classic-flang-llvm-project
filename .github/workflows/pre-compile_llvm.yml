@@ -1,0 +1,86 @@
+name: Pre-compile llvm
+
+on:
+  push:
+    branches: [ release_100 ]
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    strategy:
+      matrix:
+        target: [X86]
+        cc: [clang]
+        cpp: [clang++]
+        version: [9, 10, 11]
+        include:
+          - target: X86
+            cc: gcc
+            cpp: g++
+            version: 9
+          - target: X86
+            cc: gcc
+            cpp: g++
+            version: 10
+            
+    steps:
+      - if: matrix.cc == 'clang'
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
+          sudo touch /etc/apt/sources.list.d/llvm.list
+          echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main' | sudo tee -a /etc/apt/sources.list.d/llvm.list
+          echo 'deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main'  | sudo tee -a /etc/apt/sources.list.d/llvm.list
+          wget -q -O - http://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
+          sudo apt update
+          sudo apt install -f -y llvm-${{ matrix.version }} clang-${{ matrix.version}}
+
+      - if: matrix.cc == 'gcc' && matrix.version == '10'
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
+          sudo apt install gcc-10 g++-10
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 10
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 20
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 10
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 20
+      
+      - name: Check tools
+        run: |
+          git --version
+          cmake --version
+          make --version
+          ${{ matrix.cc }}-${{ matrix.version }} --version
+          ${{ matrix.cpp }}-${{ matrix.version }} --version
+      
+      - name: Build llvm
+        run: |
+          # exit the llvm dir, so the path is the same on subsequent projects
+          cd ../..
+          rm -rf classic-flang-llvm-project
+          # clone manually, because checkout does not allow exiting llvm dir
+          git clone --depth 1 --single-branch --branch release_100 https://github.com/flang-compiler/classic-flang-llvm-project.git
+          cd classic-flang-llvm-project
+          # After build place the artifacts in classic-flang-llvm-project/classic-flang-llvm-project, so Upload can find them.
+          mkdir classic-flang-llvm-project
+          mkdir -p build && cd build
+          # Pass the options directly, to avoid issues with quotation marks
+          cmake -DLLVM_TARGETS_TO_BUILD=${{ matrix.target }} \
+            -DCMAKE_INSTALL_PREFIX=/usr/local \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_COMPILER=/usr/bin/${{ matrix.cc }}-${{ matrix.version }} \
+            -DCMAKE_CXX_COMPILER=/usr/bin/${{ matrix.cpp }}-${{ matrix.version }} \
+            -DLLVM_ENABLE_PROJECTS="clang;openmp" \
+            -DLLVM_ENABLE_CLASSIC_FLANG=ON \
+            ../llvm
+          make -j$(nproc)
+          
+          # Archive the source + build directories for future installation
+          cd ../..
+          tar -zcf llvm_build.tar.gz classic-flang-llvm-project
+          # Upload will only look in $GITHUB_WORKSPACE or its subdirs.
+          mv llvm_build.tar.gz classic-flang-llvm-project/classic-flang-llvm-project/.
+      
+      - name: Upload llvm
+        uses: actions/upload-artifact@v2
+        with:
+          name: llvm_build_${{ matrix.target }}_${{ matrix.cc }}_${{ matrix.version }}
+          path: llvm_build.tar.gz
