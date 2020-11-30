@@ -341,6 +341,20 @@ DIFortranSubrange *DIFortranSubrange::getImpl(
   DEFINE_GETIMPL_STORE(DIFortranSubrange, (CLB, CUB, NUB), Ops);
 }
 
+DIVariable *DIFortranSubrange::getLowerBound() const {
+  Metadata *LB = getRawLowerBound();
+  if (auto GVE = dyn_cast_or_null<DIGlobalVariableExpression>(LB))
+    return GVE->getVariable();
+  return cast_or_null<DIVariable>(LB);
+}
+
+DIVariable *DIFortranSubrange::getUpperBound() const {
+  Metadata *UB = getRawUpperBound();
+  if (auto GVE = dyn_cast_or_null<DIGlobalVariableExpression>(UB))
+    return GVE->getVariable();
+  return  cast_or_null<DIVariable>(UB);
+}
+
 DIEnumerator *DIEnumerator::getImpl(LLVMContext &Context, int64_t Value,
                                     bool IsUnsigned, MDString *Name,
                                     StorageType Storage, bool ShouldCreate) {

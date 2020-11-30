@@ -382,15 +382,11 @@ public:
 
   TempDIFortranSubrange clone() const { return cloneImpl(); }
 
-  DIVariable *getLowerBound() const {
-    return cast_or_null<DIVariable>(getRawLowerBound());
-  }
+  DIVariable *getLowerBound() const;
   DIExpression *getLowerBoundExp() const {
     return cast_or_null<DIExpression>(getRawLowerBoundExpression());
   }
-  DIVariable *getUpperBound() const {
-    return  cast_or_null<DIVariable>(getRawUpperBound());
-  }
+  DIVariable *getUpperBound() const;
   DIExpression *getUpperBoundExp() const {
     return cast_or_null<DIExpression>(getRawUpperBoundExpression());
   }
