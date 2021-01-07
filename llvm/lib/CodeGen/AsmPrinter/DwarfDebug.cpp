@@ -1306,56 +1306,6 @@ void DwarfDebug::ensureAbstractEntityIsCreatedIfScoped(DwarfCompileUnit &CU,
     CU.createAbstractEntity(Node, Scope);
 }
 
-DIE *DwarfDebug::getSubrangeDie(const DIFortranSubrange *SR) const {
-  auto I = SubrangeDieMap.find(SR);
-  return (I == SubrangeDieMap.end()) ? nullptr : I->second;
-}
-
-void DwarfDebug::constructSubrangeDie(const DIFortranArrayType *AT,
-                                      DbgVariable &DV,
-                                      DwarfCompileUnit &TheCU) {
-  const DIFortranSubrange *WFS = nullptr;
-  DIExpression *WUEx = nullptr;
-  DIExpression *WLEx = nullptr;
-  const DIVariable *DI = DV.getVariable();
-  DINodeArray Elements = AT->getElements();
-
-  for (unsigned i = 0, N = Elements.size(); i < N; ++i) {
-    DINode *Element = cast<DINode>(Elements[i]);
-    if (const DIFortranSubrange *FS = dyn_cast<DIFortranSubrange>(Element)) {
-      if (DIVariable *UBV = FS->getUpperBound())
-        if (UBV == DI) {
-          WFS = FS;
-          WUEx = FS->getUpperBoundExp();
-        }
-      if (DIVariable *LBV = FS->getLowerBound())
-        if (LBV == DI) {
-          WFS = FS;
-          WLEx = FS->getLowerBoundExp();
-        }
-    }
-    if (WFS) {
-      DIE *Die;
-      auto I = SubrangeDieMap.find(WFS);
-      if (I == SubrangeDieMap.end()) {
-        Die = DIE::get(DIEValueAllocator, dwarf::DW_TAG_subrange_type);
-        SubrangeDieMap[WFS] = Die;
-      } else {
-        Die = I->second;
-      }
-
-      assert(Die);
-      if (WLEx)
-        TheCU.constructDieLocationAddExpr(
-            *Die, dwarf::DW_AT_lower_bound, DV, WLEx);
-      if (WUEx)
-        TheCU.constructDieLocationAddExpr(
-            *Die, dwarf::DW_AT_upper_bound, DV, WUEx);
-      WFS = nullptr;
-    }
-  }
-}
-
 // Collect variable information from side table maintained by MF.
 void DwarfDebug::collectVariableInfoFromMFTable(
     DwarfCompileUnit &TheCU, DenseSet<InlinedEntity> &Processed) {
@@ -1378,11 +1328,6 @@ void DwarfDebug::collectVariableInfoFromMFTable(
     auto RegVar = std::make_unique<DbgVariable>(
                     cast<DILocalVariable>(Var.first), Var.second);
     RegVar->initializeMMI(VI.Expr, VI.Slot);
-    if (VariableInDependentType.count(VI.Var)) {
-      const DIType *DT = VariableInDependentType[VI.Var];
-      if (const DIFortranArrayType *AT = dyn_cast<DIFortranArrayType>(DT))
-        constructSubrangeDie(AT, *RegVar.get(), TheCU);
-    }
     if (DbgVariable *DbgVar = MFVars.lookup(Var))
       DbgVar->addMMIEntry(*RegVar);
     else if (InfoHolder.addScopeVariable(Scope, RegVar.get())) {
@@ -1615,18 +1560,6 @@ void DwarfDebug::populateDependentTypeMap() {
               static_cast<const Metadata *>(DIV->getType())))
         if (const DIVariable *LV = ST->getStringLength())
           VariableInDependentType[LV] = ST;
-
-      if (const DIFortranArrayType *AT = dyn_cast<DIFortranArrayType>(
-              static_cast<const Metadata *>(DIV->getType()))) {
-        for (const DINode *S : AT->getElements()) {
-          if (const DIFortranSubrange *FS = dyn_cast<DIFortranSubrange>(S)) {
-            if (const DIVariable *LBV = FS->getLowerBound())
-              VariableInDependentType[LBV] = AT;
-            if (const DIVariable *UBV = FS->getUpperBound())
-              VariableInDependentType[UBV] = AT;
-          }
-        }
-      }
     }
   }
 }
