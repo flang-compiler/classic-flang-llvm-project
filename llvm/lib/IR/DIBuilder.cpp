@@ -532,15 +532,6 @@ DICompositeType *DIBuilder::createArrayType(uint64_t Size,
   return R;
 }
 
-DIFortranArrayType *DIBuilder::createFortranArrayType(
-    uint64_t Size, uint32_t AlignInBits, DIType *Ty, DINodeArray Subscripts) {
-  auto *R = DIFortranArrayType::get(VMContext, dwarf::DW_TAG_array_type, "",
-                                    nullptr, 0, nullptr, Ty, Size, AlignInBits,
-                                    0, DINode::FlagZero, Subscripts);
-  trackIfUnresolved(R);
-  return R;
-}
-
 DICompositeType *DIBuilder::createVectorType(uint64_t Size,
                                              uint32_t AlignInBits, DIType *Ty,
                                              DINodeArray Subscripts) {
@@ -653,12 +644,6 @@ DISubrange *DIBuilder::getOrCreateSubrange(int64_t Lo, Metadata *CountNode) {
 DISubrange *DIBuilder::getOrCreateSubrange(Metadata *CountNode, Metadata *LB,
                                            Metadata *UB, Metadata *Stride) {
   return DISubrange::get(VMContext, CountNode, LB, UB, Stride);
-}
-
-DIFortranSubrange *DIBuilder::getOrCreateFortranSubrange(
-    int64_t CLB, int64_t CUB, bool NUB, Metadata *LB, Metadata *LBE,
-    Metadata *UB, Metadata *UBE) {
-  return DIFortranSubrange::get(VMContext, CLB, CUB, NUB, LB, LBE, UB, UBE);
 }
 
 DIGenericSubrange *DIBuilder::getOrCreateGenericSubrange(

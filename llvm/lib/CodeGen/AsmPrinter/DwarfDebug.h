@@ -411,9 +411,6 @@ class DwarfDebug : public DebugHandlerBase {
   /// Map for tracking Fortran deferred CHARACTER lengths
   DenseMap<const DIStringType*, unsigned> StringTypeLocMap;
 
-  /// Map for tracking Fortran assumed shape array descriptors
-  DenseMap<const DIFortranSubrange*, DIE*> SubrangeDieMap;
-
   DenseMap<const DIVariable*,const DIType*> VariableInDependentType;
 
   AddressPool AddrPool;
@@ -780,10 +777,6 @@ public:
     if (Loc)
       StringTypeLocMap[ST] = Loc;
   }
-
-  DIE *getSubrangeDie(const DIFortranSubrange *SR) const;
-  void constructSubrangeDie(const DIFortranArrayType *AT,
-                            DbgVariable &DV, DwarfCompileUnit &TheCU);
 
   /// \defgroup DebuggerTuning Predicates to tune DWARF for a given debugger.
   ///

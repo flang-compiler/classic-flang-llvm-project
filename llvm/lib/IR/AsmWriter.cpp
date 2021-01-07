@@ -1838,24 +1838,6 @@ static void writeDISubrange(raw_ostream &Out, const DISubrange *N,
   Out << ")";
 }
 
-static void writeDIFortranSubrange(raw_ostream &Out, const DIFortranSubrange *N,
-                                   TypePrinting *TypePrinter,
-                                   SlotTracker *Machine,
-                                   const Module *Context) {
-  Out << "!DIFortranSubrange(";
-  MDFieldPrinter Printer(Out, TypePrinter, Machine, Context);
-  Printer.printInt("constLowerBound", N->getCLowerBound(), false);
-  if (!N->noUpperBound())
-    Printer.printInt("constUpperBound", N->getCUpperBound(), false);
-  Printer.printMetadata("lowerBound", N->getRawLowerBound());
-  Printer.printMetadata("lowerBoundExpression",
-                        N->getRawLowerBoundExpression());
-  Printer.printMetadata("upperBound", N->getRawUpperBound());
-  Printer.printMetadata("upperBoundExpression",
-                        N->getRawUpperBoundExpression());
-  Out << ")";
-}
-
 static void writeDIGenericSubrange(raw_ostream &Out, const DIGenericSubrange *N,
                                    TypePrinting *TypePrinter,
                                    SlotTracker *Machine,
@@ -2007,25 +1989,6 @@ static void writeDICompositeType(raw_ostream &Out, const DICompositeType *N,
                      /* ShouldSkipZero */ false);
   else
     Printer.printMetadata("rank", N->getRawRank(), /*ShouldSkipNull */ true);
-  Out << ")";
-}
-
-static void writeDIFortranArrayType(
-    raw_ostream &Out, const DIFortranArrayType *N, TypePrinting *TypePrinter,
-    SlotTracker *Machine, const Module *Context) {
-  Out << "!DIFortranArrayType(";
-  MDFieldPrinter Printer(Out, TypePrinter, Machine, Context);
-  Printer.printTag(N);
-  Printer.printString("name", N->getName());
-  Printer.printMetadata("scope", N->getRawScope());
-  Printer.printMetadata("file", N->getRawFile());
-  Printer.printInt("line", N->getLine());
-  Printer.printMetadata("baseType", N->getRawBaseType());
-  Printer.printInt("size", N->getSizeInBits());
-  Printer.printInt("align", N->getAlignInBits());
-  Printer.printInt("offset", N->getOffsetInBits());
-  Printer.printDIFlags("flags", N->getFlags());
-  Printer.printMetadata("elements", N->getRawElements());
   Out << ")";
 }
 
