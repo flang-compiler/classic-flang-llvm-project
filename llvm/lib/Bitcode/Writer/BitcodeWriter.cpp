@@ -296,9 +296,6 @@ private:
                           SmallVectorImpl<uint64_t> &Record, unsigned &Abbrev);
   void writeDISubrange(const DISubrange *N, SmallVectorImpl<uint64_t> &Record,
                        unsigned Abbrev);
-  void writeDIFortranSubrange(const DIFortranSubrange *N,
-                              SmallVectorImpl<uint64_t> &Record,
-                              unsigned Abbrev);
   void writeDIGenericSubrange(const DIGenericSubrange *N,
                               SmallVectorImpl<uint64_t> &Record,
                               unsigned Abbrev);
@@ -312,9 +309,6 @@ private:
                           SmallVectorImpl<uint64_t> &Record, unsigned Abbrev);
   void writeDICompositeType(const DICompositeType *N,
                             SmallVectorImpl<uint64_t> &Record, unsigned Abbrev);
-  void writeDIFortranArrayType(const DIFortranArrayType *N,
-                               SmallVectorImpl<uint64_t> &Record,
-                               unsigned Abbrev);
   void writeDISubroutineType(const DISubroutineType *N,
                              SmallVectorImpl<uint64_t> &Record,
                              unsigned Abbrev);
@@ -1564,22 +1558,6 @@ static void emitWideAPInt(SmallVectorImpl<uint64_t> &Vals, const APInt &A) {
     emitSignedInt64(Vals, RawData[i]);
 }
 
-void ModuleBitcodeWriter::writeDIFortranSubrange(
-    const DIFortranSubrange *N, SmallVectorImpl<uint64_t> &Record,
-    unsigned Abbrev) {
-  Record.push_back(N->isDistinct());
-  Record.push_back(N->getCLowerBound());
-  Record.push_back(N->getCUpperBound());
-  Record.push_back(N->noUpperBound());
-  Record.push_back(VE.getMetadataOrNullID(N->getLowerBound()));
-  Record.push_back(VE.getMetadataOrNullID(N->getLowerBoundExp()));
-  Record.push_back(VE.getMetadataOrNullID(N->getUpperBound()));
-  Record.push_back(VE.getMetadataOrNullID(N->getUpperBoundExp()));
-
-  Stream.EmitRecord(bitc::METADATA_FORTRAN_SUBRANGE, Record, Abbrev);
-  Record.clear();
-}
-
 void ModuleBitcodeWriter::writeDIGenericSubrange(
     const DIGenericSubrange *N, SmallVectorImpl<uint64_t> &Record,
     unsigned Abbrev) {
@@ -1691,26 +1669,6 @@ void ModuleBitcodeWriter::writeDICompositeType(
   Record.push_back(VE.getMetadataOrNullID(N->getRawRank()));
 
   Stream.EmitRecord(bitc::METADATA_COMPOSITE_TYPE, Record, Abbrev);
-  Record.clear();
-}
-
-void ModuleBitcodeWriter::writeDIFortranArrayType(
-    const DIFortranArrayType *N, SmallVectorImpl<uint64_t> &Record,
-    unsigned Abbrev) {
-  Record.push_back(N->isDistinct());
-  Record.push_back(N->getTag());
-  Record.push_back(VE.getMetadataOrNullID(N->getRawName()));
-  Record.push_back(VE.getMetadataOrNullID(N->getFile()));
-  Record.push_back(N->getLine());
-  Record.push_back(VE.getMetadataOrNullID(N->getScope()));
-  Record.push_back(VE.getMetadataOrNullID(N->getBaseType()));
-  Record.push_back(N->getSizeInBits());
-  Record.push_back(N->getAlignInBits());
-  Record.push_back(N->getOffsetInBits());
-  Record.push_back(N->getFlags());
-  Record.push_back(VE.getMetadataOrNullID(N->getElements().get()));
-
-  Stream.EmitRecord(bitc::METADATA_FORTRAN_ARRAY_TYPE, Record, Abbrev);
   Record.clear();
 }
 

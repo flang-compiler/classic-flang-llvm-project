@@ -497,14 +497,6 @@ namespace llvm {
     DICompositeType *createArrayType(uint64_t Size, uint32_t AlignInBits,
                                      DIType *Ty, DINodeArray Subscripts);
 
-    /// Create debugging information entry for a Fortran array.
-    /// \param Size         Array size.
-    /// \param AlignInBits  Alignment.
-    /// \param Ty           Element type.
-    /// \param Subscripts   Subscripts.
-    DIFortranArrayType *createFortranArrayType(
-        uint64_t Size, uint32_t AlignInBits, DIType *Ty, DINodeArray Subs);
-
     /// Create debugging information entry for a vector type.
     /// \param Size         Array size.
     /// \param AlignInBits  Alignment.
@@ -589,12 +581,6 @@ namespace llvm {
     DISubrange *getOrCreateSubrange(int64_t Lo, Metadata *CountNode);
     DISubrange *getOrCreateSubrange(Metadata *Count, Metadata *LowerBound,
                                     Metadata *UpperBound, Metadata *Stride);
-
-    /// Create a descriptor for a value range.  This
-    /// implicitly uniques the values returned.
-    DIFortranSubrange *getOrCreateFortranSubrange(
-        int64_t CLBound, int64_t CUBound, bool NoUBound, Metadata *Lbound,
-        Metadata * Lbndexp, Metadata *Ubound, Metadata * Ubndexp);
 
     DIGenericSubrange *
     getOrCreateGenericSubrange(DIGenericSubrange::BoundType Count,
