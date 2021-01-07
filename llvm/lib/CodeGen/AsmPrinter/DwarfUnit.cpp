@@ -658,8 +658,6 @@ DIE *DwarfUnit::createTypeDIE(const DIScope *Context, DIE &ContextDIE,
     constructTypeDIE(TyDIE, ST);
   else if (auto *STy = dyn_cast<DISubroutineType>(Ty))
     constructTypeDIE(TyDIE, STy);
-  else if (auto *ATy = dyn_cast<DIFortranArrayType>(Ty))
-    constructArrayTypeDIE(TyDIE, ATy);
   else if (auto *CTy = dyn_cast<DICompositeType>(Ty)) {
     if (DD->generateTypeUnits() && !Ty->isForwardDecl() &&
         (Ty->getRawName() || CTy->getRawIdentifier())) {
@@ -1451,48 +1449,6 @@ void DwarfUnit::constructGenericSubrangeDIE(DIE &Buffer,
   AddBoundTypeEntry(dwarf::DW_AT_byte_stride, GSR->getStride());
 }
 
-void DwarfUnit::constructFortranSubrangeDIE(DIE &Buffer,
-                                            const DIFortranSubrange *SR) {
-  DIE *IndexTy = getIndexTyDie();
-  DIE *Die = DD->getSubrangeDie(SR);
-  if ((!Die) || Die->getParent())
-    Die = DIE::get(DIEValueAllocator, dwarf::DW_TAG_subrange_type);
-  DIE &DW_Subrange = Buffer.addChild(Die);
-  addDIEEntry(DW_Subrange, dwarf::DW_AT_type, *IndexTy);
-
-  if (DIVariable *GV = SR->getLowerBound()) {
-    if (DIGlobalVariable *GVar = dyn_cast<DIGlobalVariable>(GV)) {
-      ArrayRef<DwarfCompileUnit::GlobalExpr> GEL = getCU().findGlobalExprList(GVar);
-      if (GEL.size() >= 1) {
-        DwarfCompileUnit::GlobalExpr GE = {GEL.front().Var, SR->getLowerBoundExp()};
-        SmallVector<DwarfCompileUnit::GlobalExpr, 1> GEV;
-        GEV.emplace_back(GE);
-        getCU().addLocationBlock(Die, dwarf::DW_AT_lower_bound, GVar, GEV);
-      }
-    }
-  } else {
-    int64_t BVC = SR->getCLowerBound();
-    addSInt(DW_Subrange, dwarf::DW_AT_lower_bound, dwarf::DW_FORM_sdata, BVC);
-  }
-
-  if (SR->noUpperBound()) {
-    // do nothing
-  } else if (DIVariable *GV = SR->getUpperBound()) {
-    if (DIGlobalVariable *GVar = dyn_cast<DIGlobalVariable>(GV)) {
-      ArrayRef<DwarfCompileUnit::GlobalExpr> GEL = getCU().findGlobalExprList(GVar);
-      if (GEL.size() >= 1) {
-        DwarfCompileUnit::GlobalExpr GE = {GEL.front().Var, SR->getUpperBoundExp()};
-        SmallVector<DwarfCompileUnit::GlobalExpr, 1> GEV;
-        GEV.emplace_back(GE);
-        getCU().addLocationBlock(Die, dwarf::DW_AT_upper_bound, GVar, GEV);
-      }
-    }
-  } else {
-    int64_t BVC = SR->getCUpperBound();
-    addSInt(DW_Subrange, dwarf::DW_AT_upper_bound, dwarf::DW_FORM_sdata, BVC);
-  }
-}
-
 DIE *DwarfUnit::getIndexTyDie() {
   if (IndexTyDie)
     return IndexTyDie;
@@ -1607,20 +1563,6 @@ void DwarfUnit::constructArrayTypeDIE(DIE &Buffer, const DICompositeType *CTy) {
         constructGenericSubrangeDIE(Buffer, cast<DIGenericSubrange>(Element),
                                     IdxTy);
     }
-  }
-}
-
-void DwarfUnit::constructArrayTypeDIE(DIE &Buffer,
-                                      const DIFortranArrayType *ATy) {
-  // Emit the element type.
-  addType(Buffer, ATy->getBaseType());
-
-  // Add subranges to array type.
-  DINodeArray Elements = ATy->getElements();
-  for (unsigned i = 0, N = Elements.size(); i < N; ++i) {
-    DINode *Element = cast<DINode>(Elements[i]);
-    if (const DIFortranSubrange *FS = dyn_cast<DIFortranSubrange>(Element))
-      constructFortranSubrangeDIE(Buffer, FS);
   }
 }
 

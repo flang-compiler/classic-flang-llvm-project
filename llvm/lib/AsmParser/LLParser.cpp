@@ -4565,27 +4565,6 @@ bool LLParser::ParseDISubrange(MDNode *&Result, bool IsDistinct) {
   return false;
 }
 
-/// ParseDIFortranSubrange:
-///   ::= !DIFortranSubrange(lowerBound: 2)
-bool LLParser::ParseDIFortranSubrange(MDNode *&Result, bool IsDistinct) {
-#define VISIT_MD_FIELDS(OPTIONAL, REQUIRED)                                    \
-  OPTIONAL(constLowerBound, MDSignedField, (0, INT64_MIN, INT64_MAX));         \
-  OPTIONAL(constUpperBound, MDSignedField, (0, INT64_MIN, INT64_MAX));         \
-  OPTIONAL(lowerBound, MDField, );                                             \
-  OPTIONAL(lowerBoundExpression, MDField, );                                   \
-  OPTIONAL(upperBound, MDField, );                                             \
-  OPTIONAL(upperBoundExpression, MDField, );
-  PARSE_MD_FIELDS();
-#undef VISIT_MD_FIELDS
-
-  Result = GET_OR_DISTINCT(DIFortranSubrange,
-                           (Context, constLowerBound.Val, constUpperBound.Val,
-                            (!constUpperBound.Seen) && (!upperBound.Seen),
-                            lowerBound.Val, lowerBoundExpression.Val,
-                            upperBound.Val, upperBoundExpression.Val));
-  return false;
-}
-
 /// ParseDIGenericSubrange:
 ///   ::= !DIGenericSubrange(lowerBound: !node1, upperBound: !node2, stride:
 ///   !node3)
@@ -4770,31 +4749,6 @@ bool LLParser::ParseDICompositeType(MDNode *&Result, bool IsDistinct) {
        runtimeLang.Val, vtableHolder.Val, templateParams.Val, identifier.Val,
        discriminator.Val, dataLocation.Val, associated.Val, allocated.Val,
        Rank));
-  return false;
-}
-
-bool LLParser::ParseDIFortranArrayType(MDNode *&Result, bool IsDistinct) {
-#define VISIT_MD_FIELDS(OPTIONAL, REQUIRED)                                    \
-  OPTIONAL(tag, DwarfTagField, (dwarf::DW_TAG_array_type));                    \
-  OPTIONAL(name, MDStringField, );                                             \
-  OPTIONAL(file, MDField, );                                                   \
-  OPTIONAL(line, LineField, );                                                 \
-  OPTIONAL(scope, MDField, );                                                  \
-  OPTIONAL(baseType, MDField, );                                               \
-  OPTIONAL(size, MDUnsignedField, (0, UINT64_MAX));                            \
-  OPTIONAL(align, MDUnsignedField, (0, UINT32_MAX));                           \
-  OPTIONAL(offset, MDUnsignedField, (0, UINT64_MAX));                          \
-  OPTIONAL(flags, DIFlagField, );                                              \
-  OPTIONAL(elements, MDField, );
-  PARSE_MD_FIELDS();
-#undef VISIT_MD_FIELDS
-
-  // Create a new node, and save it in the context if it belongs in the type
-  // map.
-  Result = GET_OR_DISTINCT(
-      DIFortranArrayType,
-      (Context, tag.Val, name.Val, file.Val, line.Val, scope.Val, baseType.Val,
-       size.Val, align.Val, offset.Val, flags.Val, elements.Val));
   return false;
 }
 

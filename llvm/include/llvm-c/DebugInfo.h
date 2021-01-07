@@ -160,8 +160,6 @@ enum {
   LLVMDIMacroMetadataKind,
   LLVMDIMacroFileMetadataKind,
   LLVMDIStringTypeMetadataKind,
-  LLVMDIFortranArrayTypeMetadataKind,
-  LLVMDIFortranSubrangeMetadataKind,
   LLVMDICommonBlockMetadataKind,
   LLVMDIGenericSubrangeMetadataKind
 };

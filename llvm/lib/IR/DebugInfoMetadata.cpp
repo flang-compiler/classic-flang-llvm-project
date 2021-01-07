@@ -435,15 +435,6 @@ DISubrange::BoundType DISubrange::getStride() const {
   return BoundType();
 }
 
-DIFortranSubrange *DIFortranSubrange::getImpl(
-    LLVMContext &Context, int64_t CLB, int64_t CUB, bool NUB, Metadata *LB,
-    Metadata *LBE, Metadata *UB, Metadata *UBE, StorageType Storage,
-    bool ShouldCreate) {
-  DEFINE_GETIMPL_LOOKUP(DIFortranSubrange, (CLB, CUB, NUB, LB, LBE, UB, UBE));
-  Metadata *Ops[] = {LB, LBE, UB, UBE};
-  DEFINE_GETIMPL_STORE(DIFortranSubrange, (CLB, CUB, NUB), Ops);
-}
-
 DIGenericSubrange *DIGenericSubrange::getImpl(LLVMContext &Context,
                                               Metadata *CountNode, Metadata *LB,
                                               Metadata *UB, Metadata *Stride,
@@ -587,22 +578,6 @@ DIDerivedType *DIDerivedType::getImpl(
   DEFINE_GETIMPL_STORE(
       DIDerivedType, (Tag, Line, SizeInBits, AlignInBits, OffsetInBits,
                       DWARFAddressSpace, Flags), Ops);
-}
-
-DIFortranArrayType *DIFortranArrayType::getImpl(
-    LLVMContext &Context, unsigned Tag, MDString *Name, Metadata *File,
-    unsigned Line, Metadata *Scope, Metadata *BaseType, uint64_t SizeInBits,
-    uint32_t AlignInBits, uint64_t OffsetInBits, DIFlags Flags,
-    Metadata *Elements, StorageType Storage, bool ShouldCreate) {
-  assert(isCanonical(Name) && "Expected canonical MDString");
-
-  // Keep this in sync with buildODRType.
-  DEFINE_GETIMPL_LOOKUP(
-      DIFortranArrayType, (Tag, Name, File, Line, Scope, BaseType, SizeInBits,
-                           AlignInBits, OffsetInBits, Flags, Elements));
-  Metadata *Ops[] = {File, Scope, Name, BaseType, Elements};
-  DEFINE_GETIMPL_STORE(DIFortranArrayType, (Tag, Line, SizeInBits, AlignInBits,
-                                            OffsetInBits, Flags), Ops);
 }
 
 DICompositeType *DICompositeType::getImpl(
