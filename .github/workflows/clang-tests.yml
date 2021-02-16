@@ -12,6 +12,7 @@ on:
     paths:
       - 'clang/**'
       - 'llvm/**'
+      - '.github/workflows/clang-tests.yml'
 
 jobs:
   build_clang:
