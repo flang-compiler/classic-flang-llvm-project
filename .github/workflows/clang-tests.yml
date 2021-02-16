@@ -33,7 +33,7 @@ jobs:
     - name: ccache
       uses: hendrikmuhs/ccache-action@v1
       with:
-        key: ${{ matrix.cc }}-${{ matrix.version }}
+        key: ${{ matrix.os }}
     - name: Test clang
       uses: llvm/actions/build-test-llvm-project@main
       with:
