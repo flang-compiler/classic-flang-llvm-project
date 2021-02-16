@@ -26,7 +26,7 @@ jobs:
           - macOS-latest
     steps:
     - name: Install Ninja
-      uses: llvm/actions/install-ninja@master
+      uses: llvm/actions/install-ninja@main
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
@@ -35,7 +35,7 @@ jobs:
       with:
         key: ${{ matrix.cc }}-${{ matrix.version }}
     - name: Test clang
-      uses: llvm/actions/build-test-llvm-project@master
+      uses: llvm/actions/build-test-llvm-project@main
       with:
         cmake_args: -G Ninja  -DLLVM_ENABLE_PROJECTS="clang" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         build_target: check-clang
