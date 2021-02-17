@@ -42,7 +42,12 @@ jobs:
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 20
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 10
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 20
-      
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: llvm-${{ matrix.cc }}-${{ matrix.version }}
+
       - name: Check tools
         run: |
           git --version
@@ -74,6 +79,8 @@ jobs:
             -DCMAKE_CXX_COMPILER=/usr/bin/${{ matrix.cpp }}-${{ matrix.version }} \
             -DLLVM_ENABLE_PROJECTS="clang;openmp" \
             -DLLVM_ENABLE_CLASSIC_FLANG=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             ../llvm
           make -j$(nproc)
           
