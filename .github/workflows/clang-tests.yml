@@ -35,8 +35,12 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
+    - name: ccache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ matrix.os }}
     - name: Test clang
       uses: llvm/actions/build-test-llvm-project@main
       with:
-        cmake_args: -G Ninja  -DLLVM_ENABLE_PROJECTS="clang" -DCMAKE_BUILD_TYPE=Release
+        cmake_args: -G Ninja  -DLLVM_ENABLE_PROJECTS="clang" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
         build_target: check-clang
