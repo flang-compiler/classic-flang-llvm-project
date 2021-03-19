@@ -20,7 +20,7 @@
 ! CHECK-PREPROCESS-SAME: "-preprocess"
 ! CHECK-PREPROCESS-SAME: "-es"
 ! CHECK-PREPROCESS-SAME: "-pp"
-! CHECK-PREPROCESS-NOT: "{{^.*}}flang1"
-! CHECK-PREPROCESS-NOT: "{{^.*}}flang2"
+! CHECK-PREPROCESS-NOT: "{{.*}}flang1"
+! CHECK-PREPROCESS-NOT: "{{.*}}flang2"
 ! CHECK-PREPROCESS-NOT: {{clang.* "-cc1"}}
 ! CHECK-PREPROCESS-NOT: {{clang.* "-cc1as"}}
