@@ -355,6 +355,13 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
       CommonCmdArgs.push_back("0x1000000");
     else if (GDwarfArg->getOption().matches(options::OPT_gdwarf_5)) // -gdwarf-5
       CommonCmdArgs.push_back("0x2000000");
+    // Handle `-gpubnames` option separately.
+    for (auto Arg : Args.filtered(options::OPT_gpubnames)) {
+      Arg->claim();
+      CommonCmdArgs.push_back("-x");
+      CommonCmdArgs.push_back("120");
+      CommonCmdArgs.push_back("0x40000000"); // -gpubnames
+    }
   }
 
   // -Mipa has no effect
