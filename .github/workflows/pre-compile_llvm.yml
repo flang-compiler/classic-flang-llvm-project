@@ -12,12 +12,8 @@ jobs:
         target: [X86]
         cc: [clang]
         cpp: [clang++]
-        version: [9, 10, 11]
+        version: [10, 11]
         include:
-          - target: X86
-            cc: gcc
-            cpp: g++
-            version: 9
           - target: X86
             cc: gcc
             cpp: g++
