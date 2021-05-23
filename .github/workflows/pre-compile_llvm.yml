@@ -1,6 +1,7 @@
 name: Pre-compile llvm
 
 on:
+  workflow_dispatch:
   push:
     branches: [ release_100, release_11x, release_12x ]
 
@@ -61,20 +62,14 @@ jobs:
           cd classic-flang-llvm-project
           # After build place the artifacts in classic-flang-llvm-project/classic-flang-llvm-project, so Upload can find them.
           mkdir classic-flang-llvm-project
-          mkdir -p build && cd build
-          # Pass the options directly, to avoid issues with quotation marks
-          cmake -DLLVM_TARGETS_TO_BUILD=${{ matrix.target }} \
-            -DCMAKE_INSTALL_PREFIX=/usr/local \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=/usr/bin/${{ matrix.cc }}-${{ matrix.version }} \
-            -DCMAKE_CXX_COMPILER=/usr/bin/${{ matrix.cpp }}-${{ matrix.version }} \
-            -DLLVM_ENABLE_PROJECTS="clang;openmp" \
-            -DLLVM_ENABLE_CLASSIC_FLANG=ON \
-            ../llvm
-          make -j$(nproc)
-          
+          ./build-llvm-project.sh \
+            -t ${{ matrix.target }} \
+            -p /usr/local \
+            -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} \
+            -b /usr/bin/${{ matrix.cpp }}-${{ matrix.version }} \
+            -n $(nproc)
           # Archive the source + build directories for future installation
-          cd ../..
+          cd ..
           tar -zcf llvm_build.tar.gz classic-flang-llvm-project
           # Upload will only look in $GITHUB_WORKSPACE or its subdirs.
           mv llvm_build.tar.gz classic-flang-llvm-project/classic-flang-llvm-project/.
