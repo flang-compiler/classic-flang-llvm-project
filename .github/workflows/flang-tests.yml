@@ -56,64 +56,18 @@ jobs:
           ${{ matrix.cc }}-${{ matrix.version }} --version
           ${{ matrix.cpp }}-${{ matrix.version }} --version
 
-      - name: Build llvm
-        run: |
-          mkdir -p build && cd build
-          # Pass the options directly, to avoid issues with quotation marks
-          cmake -DLLVM_TARGETS_TO_BUILD=${{ matrix.target }} \
-            -DCMAKE_INSTALL_PREFIX=${{ env.install_prefix }} \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=/usr/bin/${{ matrix.cc }}-${{ matrix.version }} \
-            -DCMAKE_CXX_COMPILER=/usr/bin/${{ matrix.cpp }}-${{ matrix.version }} \
-            -DLLVM_ENABLE_PROJECTS="clang;openmp" \
-            -DLLVM_ENABLE_CLASSIC_FLANG=ON \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            ../llvm
-          make -j$(nproc)
-          sudo make install
+      - name: Build and install llvm
+        run: ./build-llvm-project.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} -b /usr/bin/${{ matrix.cpp }}-${{ matrix.version }} -n $(nproc) -c -i -s
 
       - name: Checkout flang
         run: |
           cd ../..
           git clone --depth 1 --single-branch --branch master https://github.com/flang-compiler/flang.git
-          cd flang
-          mkdir -p build && cd build
 
-      - name: Build libpgmath
-        run: |
-          CMAKE_OPTIONS="-DLLVM_TARGETS_TO_BUILD=${{ matrix.target }} \
-            -DCMAKE_INSTALL_PREFIX=${{ env.install_prefix }} \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=${{ env.install_prefix }}/bin/clang \
-            -DCMAKE_CXX_COMPILER=${{ env.install_prefix }}/bin/clang++ \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
-          cd ../../flang/runtime/libpgmath
-          mkdir -p build && cd build
-          cmake $CMAKE_OPTIONS ..
-          make -j$(nproc)
-          sudo make install
-
-      - name: Build Flang
+      - name: Build and install libpgmath & flang
         run: |
           cd ../../flang
-          mkdir -p build && cd build
-          cmake -DLLVM_TARGETS_TO_BUILD=${{ matrix.target }} \
-            -DCMAKE_INSTALL_PREFIX=${{ env.install_prefix }} \
-            -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_C_COMPILER=${{ env.install_prefix }}/bin/clang \
-            -DCMAKE_CXX_COMPILER=${{ env.install_prefix }}/bin/clang++ \
-            -DCMAKE_Fortran_COMPILER=${{ env.install_prefix }}/bin/flang \
-            -DCMAKE_Fortran_COMPILER_ID=Flang \
-            -DFLANG_INCLUDE_DOCS=ON \
-            -DFLANG_LLVM_EXTENSIONS=ON \
-            -DWITH_WERROR=OFF \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            ..
-          make -j$(nproc)
-          sudo make install
+          ./build-flang.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -n $(nproc) -c -s
 
       - name: Copy llvm-lit
         run: |

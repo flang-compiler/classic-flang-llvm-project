@@ -46,18 +46,7 @@ RUN mkdir /home/github/
 RUN mkdir /home/root && cd home/root && \
     git clone --depth 1 --single-branch --branch release_12x https://github.com/flang-compiler/classic-flang-llvm-project.git classic-flang-llvm-project && \
     cd classic-flang-llvm-project && \
-    mkdir -p build && cd build && \
-    cmake -DLLVM_TARGETS_TO_BUILD=AArch64 \
-             -DCMAKE_INSTALL_PREFIX=/home/github/usr/local \
-             -DCMAKE_BUILD_TYPE=Release \
-             -DCMAKE_C_COMPILER=/usr/bin/gcc-10 \
-             -DCMAKE_CXX_COMPILER=/usr/bin/g++-10 \
-             -DLLVM_ENABLE_PROJECTS="clang;openmp" \
-             -DLLVM_ENABLE_CLASSIC_FLANG=ON \
-             ../llvm && \
-    make -j`nproc --ignore=1` && \
-    make install && \
-    make clean
+    ./build-llvm-project.sh -t AArch64 -p /home/github/usr/local -n `nproc --ignore=1` -a /usr/bin/gcc-10 -b /usr/bin/g++-10 -i
 
 RUN useradd github && \
     chown -R github:github /home/github
