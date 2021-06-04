@@ -1,6 +1,7 @@
 name: Ubuntu20 Dockerfile image
 
 on:
+  workflow_dispatch:
   push:
     branches: [ release_11x, release_12x ]
     paths-include:
