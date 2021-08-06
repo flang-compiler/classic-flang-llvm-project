@@ -1072,7 +1072,9 @@ void ToolChain::AddFortranStdlibLibArgs(const ArgList &Args,
     CmdArgs.push_back("-Bdynamic");
 
   CmdArgs.push_back("-lm");
-  CmdArgs.push_back("-lrt");
+
+  if (!Triple.isOSDarwin())
+    CmdArgs.push_back("-lrt");
 
   // Allways link Fortran executables with Pthreads
   CmdArgs.push_back("-lpthread");
