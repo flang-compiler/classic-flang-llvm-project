@@ -678,6 +678,18 @@ void darwin::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   if (getToolChain().ShouldLinkCXXStdlib(Args))
     getToolChain().AddCXXStdlibLibArgs(Args, CmdArgs);
 
+#ifdef ENABLE_CLASSIC_FLANG
+  // Add Fortran runtime libraries
+  if (needFortranLibs(getToolChain().getDriver(), Args)) {
+    getToolChain().AddFortranStdlibLibArgs(Args, CmdArgs);
+  } else {
+    // Claim "no Flang libraries" arguments if any
+    for (auto Arg : Args.filtered(options::OPT_noFlangLibs)) {
+      Arg->claim();
+    }
+  }
+#endif
+
   bool NoStdOrDefaultLibs =
       Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs);
   bool ForceLinkBuiltins = Args.hasArg(options::OPT_fapple_link_rtlib);
