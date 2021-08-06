@@ -576,7 +576,7 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   if (needFortranLibs(D, Args)) {
     ToolChain.AddFortranStdlibLibArgs(Args, CmdArgs);
   } else {
-  // Claim "no Flang libraries" arguments if any
+    // Claim "no Flang libraries" arguments if any
     for (auto Arg : Args.filtered(options::OPT_noFlangLibs)) {
       Arg->claim();
     }
