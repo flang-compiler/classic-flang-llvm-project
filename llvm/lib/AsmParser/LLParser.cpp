@@ -5223,7 +5223,7 @@ bool LLParser::ParseDIObjCProperty(MDNode *&Result, bool IsDistinct) {
 
 /// ParseDIImportedEntity:
 ///   ::= !DIImportedEntity(tag: DW_TAG_imported_module, scope: !0, entity: !1,
-///                         line: 7, name: "foo")
+///                         line: 7, name: "foo", elements: !2)
 bool LLParser::ParseDIImportedEntity(MDNode *&Result, bool IsDistinct) {
 #define VISIT_MD_FIELDS(OPTIONAL, REQUIRED)                                    \
   REQUIRED(tag, DwarfTagField, );                                              \
@@ -5231,13 +5231,14 @@ bool LLParser::ParseDIImportedEntity(MDNode *&Result, bool IsDistinct) {
   OPTIONAL(entity, MDField, );                                                 \
   OPTIONAL(file, MDField, );                                                   \
   OPTIONAL(line, LineField, );                                                 \
-  OPTIONAL(name, MDStringField, );
+  OPTIONAL(name, MDStringField, );                                             \
+  OPTIONAL(elements, MDField, );
   PARSE_MD_FIELDS();
 #undef VISIT_MD_FIELDS
 
-  Result = GET_OR_DISTINCT(
-      DIImportedEntity,
-      (Context, tag.Val, scope.Val, entity.Val, file.Val, line.Val, name.Val));
+  Result = GET_OR_DISTINCT(DIImportedEntity,
+                           (Context, tag.Val, scope.Val, entity.Val, file.Val,
+                            line.Val, name.Val, elements.Val));
   return false;
 }
 
