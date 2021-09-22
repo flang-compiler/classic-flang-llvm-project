@@ -50,7 +50,7 @@ class ClassicFlangMacroBuilder : public MacroBuilder {
     ClassicFlangMacroBuilder(ArgStringList &UpperCmdArgs, const ArgList &DriverArgs, llvm::raw_string_ostream &Output)
       : MacroBuilder(Output), CmdArgs(UpperCmdArgs), DriverArgs(DriverArgs) {
     }
-    virtual void defineMacro(const Twine &Name, const Twine &Value = "1") {
+    virtual void defineMacro(const Twine &Name, const Twine &Value = "1") override {
       CmdArgs.push_back("-def");
       CmdArgs.push_back(DriverArgs.MakeArgString(Name + Twine('=') + Value));
     }
@@ -212,7 +212,7 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
 
   // Contiguous pointer checks
   if (Arg *A = Args.getLastArg(options::OPT_fsanitize_EQ)) {
-    for (const StringRef &val : A->getValues()) {
+    for (StringRef val : A->getValues()) {
       if (val.equals("discontiguous") || val.equals("undefined") ) {
         // -x 54 0x40 -x 54 0x80 -x 54 0x200
         UpperCmdArgs.push_back("-x");
