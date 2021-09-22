@@ -4824,7 +4824,7 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
     PassRemarkVal = ".*";
     Args.ClaimAllArgs(options::OPT_Minfoall);
   } else if (Arg *A = Args.getLastArg(options::OPT_Minfo_EQ)) {
-    for (const StringRef &val : A->getValues()) {
+    for (StringRef val : A->getValues()) {
       if (val.equals("all")) {
         PassRemarkVal = ".*";
         break;
@@ -4850,7 +4850,7 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
     PassRemarkVal = ".*";
     Args.ClaimAllArgs(options::OPT_Mneginfoall);
   } else if (Arg *A = Args.getLastArg(options::OPT_Mneginfo_EQ)) {
-    for (const StringRef &val : A->getValues()) {
+    for (StringRef val : A->getValues()) {
       if (val.equals("all")) {
         PassRemarkVal = ".*";
         break;
