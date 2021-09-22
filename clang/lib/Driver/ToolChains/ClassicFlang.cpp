@@ -50,7 +50,7 @@ class ClassicFlangMacroBuilder : public MacroBuilder {
     ClassicFlangMacroBuilder(ArgStringList &UpperCmdArgs, const ArgList &DriverArgs, llvm::raw_string_ostream &Output)
       : MacroBuilder(Output), CmdArgs(UpperCmdArgs), DriverArgs(DriverArgs) {
     }
-    virtual void defineMacro(const Twine &Name, const Twine &Value = "1") {
+    virtual void defineMacro(const Twine &Name, const Twine &Value = "1") override {
       CmdArgs.push_back("-def");
       CmdArgs.push_back(DriverArgs.MakeArgString(Name + Twine('=') + Value));
     }
