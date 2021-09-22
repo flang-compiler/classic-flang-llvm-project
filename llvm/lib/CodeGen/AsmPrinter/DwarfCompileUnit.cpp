@@ -367,13 +367,6 @@ void DwarfCompileUnit::addLocationBlock(DIE *VariableDIE,
   }
 }
 
-ArrayRef<DwarfCompileUnit::GlobalExpr>
-DwarfCompileUnit::findGlobalExprList(DIGlobalVariable *GV) {
-  if (globalVarMap)
-    return (*globalVarMap)[GV];
-  return SmallVector<GlobalExpr, 1>();
-}
-
 DIE *DwarfCompileUnit::getOrCreateCommonBlock(
     const DICommonBlock *CB, ArrayRef<GlobalExpr> GlobalExprs) {
   // Check for pre-existence.
