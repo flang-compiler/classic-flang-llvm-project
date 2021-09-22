@@ -1215,17 +1215,11 @@ void DwarfDebug::beginModule(Module *M) {
     }
 
     DenseSet<DIGlobalVariable *> Processed;
-#if 0
-    CU.setGlobalVarMap(&GVMap);
-#endif
     for (auto *GVE : CUNode->getGlobalVariables()) {
       DIGlobalVariable *GV = GVE->getVariable();
       if (Processed.insert(GV).second)
         CU.getOrCreateGlobalVariableDIE(GV, sortGlobalExprs(GVMap[GV]));
     }
-#if 0
-    CU.setGlobalVarMap();
-#endif
 
     for (auto *Ty : CUNode->getEnumTypes())
       CU.getOrCreateTypeDIE(cast<DIType>(Ty));
