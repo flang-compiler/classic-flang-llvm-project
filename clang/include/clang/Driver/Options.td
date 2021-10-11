@@ -4495,7 +4495,7 @@ def ffixed_line_length_EQ : Joined<["-"], "ffixed-line-length=">, Group<gfortran
   HelpText<"Use <value> as character line width in fixed mode">,
   DocBrief<[{Set column after which characters are ignored in typical fixed-form lines in the source
 file}]>;
-def ffixed_line_length_VALUE : Joined<["-"], "ffixed-line-length-">, Group<gfortran_Group>, Alias<ffixed_line_length_EQ>,
+def ffixed_line_length_VALUE : Joined<["-"], "ffixed-line-length-">, Group<gfortran_Group>,
   HelpText<"Set line length in fixed-form format Fortran, current supporting only 72 and 132 characters">;
 def fopenacc : Flag<["-"], "fopenacc">, Group<f_Group>,
   HelpText<"Enable OpenACC">;
