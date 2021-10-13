@@ -2,7 +2,7 @@ name: Build and test Flang
 
 on:
   pull_request:
-    branches: [ release_11x, release_12x ]
+    branches: [ release_11x, release_12x, release_13x ]
 
 jobs:
   build:
