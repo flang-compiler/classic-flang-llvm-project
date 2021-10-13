@@ -3,7 +3,7 @@ name: Pre-compile llvm
 on:
   workflow_dispatch:
   push:
-    branches: [ release_100, release_11x, release_12x ]
+    branches: [ release_100, release_11x, release_12x, release_13x ]
 
 jobs:
   build:
