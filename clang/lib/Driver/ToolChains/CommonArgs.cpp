@@ -133,7 +133,7 @@ static void renderRemarksHotnessOptions(const ArgList &Args,
 
 #ifdef ENABLE_CLASSIC_FLANG
 /// \brief Determine if Fortran "main" object is needed
-static bool needFortranMain(const Driver &D, const ArgList &Args) {
+bool tools::needFortranMain(const Driver &D, const ArgList &Args) {
   return (needFortranLibs(D, Args)
        && (!Args.hasArg(options::OPT_Mnomain) ||
            !Args.hasArg(options::OPT_no_fortran_main)));
