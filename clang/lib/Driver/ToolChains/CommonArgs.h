@@ -22,6 +22,8 @@ namespace tools {
 
 bool needFortranLibs(const Driver &D, const llvm::opt::ArgList &Args);
 
+bool needFortranMain(const Driver &D, const llvm::opt::ArgList &Args);
+
 void addPathIfExists(const Driver &D, const Twine &Path,
                      ToolChain::path_list &Paths);
 
