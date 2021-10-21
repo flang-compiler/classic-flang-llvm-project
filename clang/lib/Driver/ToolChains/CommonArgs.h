@@ -25,6 +25,8 @@ namespace tools {
 
 #ifdef ENABLE_CLASSIC_FLANG
 bool needFortranLibs(const Driver &D, const llvm::opt::ArgList &Args);
+
+bool needFortranMain(const Driver &D, const llvm::opt::ArgList &Args);
 #endif
 
 void addPathIfExists(const Driver &D, const Twine &Path,
