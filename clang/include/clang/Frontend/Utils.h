@@ -83,9 +83,7 @@ static void DefineTypeSize(const Twine &MacroName, unsigned TypeWidth,
   static_assert(std::is_base_of<MacroBuilder, T>::value, "Illegal T value");
   llvm::APInt MaxVal = isSigned ? llvm::APInt::getSignedMaxValue(TypeWidth)
                                 : llvm::APInt::getMaxValue(TypeWidth);
-  SmallString<4096> str;
-  MaxVal.toString(str, 10, isSigned);
-  Builder.defineMacro(MacroName, str + ValSuffix);
+  Builder.defineMacro(MacroName, toString(MaxVal, 10, isSigned) + ValSuffix);
 }
 
 /// DefineTypeSize - An overloaded helper that uses TargetInfo to determine

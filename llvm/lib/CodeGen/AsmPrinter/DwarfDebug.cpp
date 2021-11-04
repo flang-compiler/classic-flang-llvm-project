@@ -1223,13 +1223,17 @@ void DwarfDebug::beginModule(Module *M) {
     }
 
     DenseSet<DIGlobalVariable *> Processed;
-//    CU.setGlobalVarMap(&GVMap);
+#if 0
+    CU.setGlobalVarMap(&GVMap);
+#endif
     for (auto *GVE : CUNode->getGlobalVariables()) {
       DIGlobalVariable *GV = GVE->getVariable();
       if (Processed.insert(GV).second)
         CU.getOrCreateGlobalVariableDIE(GV, sortGlobalExprs(GVMap[GV]));
     }
-//    CU.setGlobalVarMap();
+#if 0
+    CU.setGlobalVarMap();
+#endif
 
     for (auto *Ty : CUNode->getEnumTypes()) {
       // The enum types array by design contains pointers to
@@ -1834,19 +1838,21 @@ DbgEntity *DwarfDebug::createConcreteEntity(DwarfCompileUnit &TheCU,
   return ConcreteEntities.back().get();
 }
 
-//void DwarfDebug::populateDependentTypeMap() {
-//  for (const auto &I : DbgValues) {
-//    InlinedEntity IV = I.first;
-//    if (I.second.empty())
-//      continue;
-//    if (const DIVariable *DIV = dyn_cast<DIVariable>(IV.first)) {
-//      if (const DIStringType *ST = dyn_cast<DIStringType>(
-//              static_cast<const Metadata *>(DIV->getType())))
-//        if (const DIVariable *LV = ST->getStringLength())
-//          VariableInDependentType[LV] = ST;
-//    }
-//  }
-//}
+#if 0
+void DwarfDebug::populateDependentTypeMap() {
+ for (const auto &I : DbgValues) {
+   InlinedEntity IV = I.first;
+   if (I.second.empty())
+     continue;
+   if (const DIVariable *DIV = dyn_cast<DIVariable>(IV.first)) {
+     if (const DIStringType *ST = dyn_cast<DIStringType>(
+             static_cast<const Metadata *>(DIV->getType())))
+       if (const DIVariable *LV = ST->getStringLength())
+         VariableInDependentType[LV] = ST;
+   }
+ }
+}
+#endif
 
 // Find variables for each lexical scope.
 void DwarfDebug::collectEntityInfo(DwarfCompileUnit &TheCU,
@@ -1871,10 +1877,12 @@ void DwarfDebug::collectEntityInfo(DwarfCompileUnit &TheCU,
       continue;
 
     LexicalScope *Scope = nullptr;
-	 const DILocalVariable *LocalVar = cast<DILocalVariable>(IV.first);
-//    const DILocalVariable *LocalVar = dyn_cast<DILocalVariable>(IV.first);
-//    if (!LocalVar)
-//      continue;
+    const DILocalVariable *LocalVar = cast<DILocalVariable>(IV.first);
+#if 0
+    const DILocalVariable *LocalVar = dyn_cast<DILocalVariable>(IV.first);
+    if (!LocalVar)
+      continue;
+#endif
     if (const DILocation *IA = IV.second)
       Scope = LScopes.findInlinedScope(LocalVar->getScope(), IA);
     else
@@ -1933,22 +1941,24 @@ void DwarfDebug::collectEntityInfo(DwarfCompileUnit &TheCU,
     // Finalize the entry by lowering it into a DWARF bytestream.
     for (auto &Entry : Entries)
       Entry.finalize(*Asm, List, BT, TheCU);
-//    List.finalize();
+#if 0
+   List.finalize();
 
-//    if (VariableInDependentType.count(LocalVar)) {
-//      const DIType *DT = VariableInDependentType[LocalVar];
-//      if (const DIStringType *ST = dyn_cast<DIStringType>(DT)) {
-//        unsigned Offset;
-//        DbgVariable TVar = {LocalVar, IV.second};
-//        DebugLocStream::ListBuilder LB(DebugLocs, TheCU, *Asm, TVar, *MInsn);
-//        for (auto &Entry : Entries)
-//          Entry.finalize(*Asm, LB, ST, TheCU);
-//        LB.finalize();
-//        Offset = TVar.getDebugLocListIndex();
-//        if (Offset != ~0u)
-//          addStringTypeLoc(ST, Offset);
-//      }
-//    }
+   if (VariableInDependentType.count(LocalVar)) {
+     const DIType *DT = VariableInDependentType[LocalVar];
+     if (const DIStringType *ST = dyn_cast<DIStringType>(DT)) {
+       unsigned Offset;
+       DbgVariable TVar = {LocalVar, IV.second};
+       DebugLocStream::ListBuilder LB(DebugLocs, TheCU, *Asm, TVar, *MInsn);
+       for (auto &Entry : Entries)
+         Entry.finalize(*Asm, LB, ST, TheCU);
+       LB.finalize();
+       Offset = TVar.getDebugLocListIndex();
+       if (Offset != ~0u)
+         addStringTypeLoc(ST, Offset);
+      }
+    }
+#endif
   }
 
   // For each InlinedEntity collected from DBG_LABEL instructions, convert to
@@ -2694,32 +2704,34 @@ void DebugLocEntry::finalize(const AsmPrinter &AP,
     List.setTagOffset(*DwarfExpr.TagOffset);
 }
 
-//inline static DbgValueLoc mkDbgValueLoc(const DIExpression *expr,
-//                                        DbgValueLoc &value) {
-//  if (value.isInt())
-//    return DbgValueLoc(expr, value.getInt());
-//  if (value.isLocation())
-//    return DbgValueLoc(expr, value.getLoc());
-//  if (value.isConstantInt())
-//    return DbgValueLoc(expr, value.getConstantInt());
-//  assert(value.isConstantFP());
-//  return DbgValueLoc(expr, value.getConstantFP());
-//}
+#if 0
+inline static DbgValueLoc mkDbgValueLoc(const DIExpression *expr,
+                                        DbgValueLoc &value) {
+  if (value.isInt())
+    return DbgValueLoc(expr, value.getInt());
+  if (value.isLocation())
+    return DbgValueLoc(expr, value.getLoc());
+  if (value.isConstantInt())
+    return DbgValueLoc(expr, value.getConstantInt());
+  assert(value.isConstantFP());
+  return DbgValueLoc(expr, value.getConstantFP());
+}
 
-//void DebugLocEntry::finalize(const AsmPrinter &AP,
-//                             DebugLocStream::ListBuilder &List,
-//                             const DIStringType *ST,
-//                             DwarfCompileUnit &TheCU) {
-//  DebugLocStream::EntryBuilder Entry(List, Begin, End);
-//  BufferByteStreamer Streamer = Entry.getStreamer();
-//  DebugLocDwarfExpression DwarfExpr(AP.getDwarfVersion(), Streamer, TheCU);
-//  DbgValueLoc &Value = Values[0];
-//  assert(!Value.isFragment());
-//  assert(Values.size() == 1 && "only fragments may have >1 value");
-//  Value = mkDbgValueLoc(ST->getStringLengthExp(), Value);
-//  DwarfDebug::emitDebugLocValue(AP, nullptr, Value, DwarfExpr);
-//  DwarfExpr.finalize();
-//}
+void DebugLocEntry::finalize(const AsmPrinter &AP,
+                             DebugLocStream::ListBuilder &List,
+                             const DIStringType *ST,
+                             DwarfCompileUnit &TheCU) {
+  DebugLocStream::EntryBuilder Entry(List, Begin, End);
+  BufferByteStreamer Streamer = Entry.getStreamer();
+  DebugLocDwarfExpression DwarfExpr(AP.getDwarfVersion(), Streamer, TheCU);
+  DbgValueLoc &Value = Values[0];
+  assert(!Value.isFragment());
+  assert(Values.size() == 1 && "only fragments may have >1 value");
+  Value = mkDbgValueLoc(ST->getStringLengthExp(), Value);
+  DwarfDebug::emitDebugLocValue(AP, nullptr, Value, DwarfExpr);
+  DwarfExpr.finalize();
+}
+#endif
 
 void DwarfDebug::emitDebugLocEntryLocation(const DebugLocStream::Entry &Entry,
                                            const DwarfCompileUnit *CU) {
