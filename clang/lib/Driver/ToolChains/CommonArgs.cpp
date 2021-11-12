@@ -530,10 +530,18 @@ static void getWebAssemblyTargetFeatures(const Driver &D,
                             options::OPT_m_wasm_Features_Group);
 }
 
+#ifndef ENABLE_CLASSIC_FLANG
 void tools::getTargetFeatures(const Driver &D, const llvm::Triple &Triple,
                               const ArgList &Args, ArgStringList &CmdArgs,
                               bool ForAS, bool IsAux) {
   std::vector<StringRef> Features;
+#else
+void tools::getTargetFeatureList(const Driver &D,
+                                 const llvm::Triple &Triple,
+                                 const ArgList &Args, ArgStringList &CmdArgs,
+                                 bool ForAS,
+                                 std::vector<StringRef> &Features) {
+#endif
   switch (Triple.getArch()) {
   default:
     break;
@@ -608,6 +616,15 @@ void tools::getTargetFeatures(const Driver &D, const llvm::Triple &Triple,
     loongarch::getLoongArchTargetFeatures(D, Triple, Args, Features);
     break;
   }
+#ifdef ENABLE_CLASSIC_FLANG
+}
+
+void tools::getTargetFeatures(const Driver &D, const llvm::Triple &Triple,
+                              const ArgList &Args, ArgStringList &CmdArgs,
+                              bool ForAS, bool IsAux) {
+  std::vector<StringRef> Features;
+  getTargetFeatureList(D, Triple, Args, CmdArgs, ForAS, Features);
+#endif
 
   for (auto Feature : unifyTargetFeatures(Features)) {
     CmdArgs.push_back(IsAux ? "-aux-target-feature" : "-target-feature");

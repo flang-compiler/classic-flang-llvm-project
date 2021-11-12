@@ -177,6 +177,17 @@ void AddTargetFeature(const llvm::opt::ArgList &Args,
 std::string getCPUName(const Driver &D, const llvm::opt::ArgList &Args,
                        const llvm::Triple &T, bool FromAs = false);
 
+#ifdef ENABLE_CLASSIC_FLANG
+// Helper function extracted from upstream getTargetFeatures. Classic Flang
+// uses this helper to render the target feature options for the Fortran
+// frontend.
+void getTargetFeatureList(const Driver &D,
+                          const llvm::Triple &Triple,
+                          const llvm::opt::ArgList &Args,
+                          llvm::opt::ArgStringList &CmdArgs,
+                          bool ForAS, std::vector<StringRef> &Features);
+#endif
+
 void getTargetFeatures(const Driver &D, const llvm::Triple &Triple,
                        const llvm::opt::ArgList &Args,
                        llvm::opt::ArgStringList &CmdArgs, bool ForAS,
