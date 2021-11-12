@@ -14,6 +14,7 @@
 #include "clang/Driver/Multilib.h"
 #include "clang/Driver/Tool.h"
 #include "clang/Driver/ToolChain.h"
+#include "llvm/Option/ArgList.h"
 #include "llvm/Support/CodeGen.h"
 
 namespace clang {
@@ -24,6 +25,12 @@ bool needFortranLibs(const Driver &D, const llvm::opt::ArgList &Args);
 
 void addPathIfExists(const Driver &D, const Twine &Path,
                      ToolChain::path_list &Paths);
+
+void getTargetFeatureList(const Driver &D,
+                          const llvm::Triple &Triple,
+                          const llvm::opt::ArgList &Args,
+                          llvm::opt::ArgStringList &CmdArgs,
+                          bool ForAS, std::vector<StringRef> &Features);
 
 void AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
                      const llvm::opt::ArgList &Args,

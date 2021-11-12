@@ -59,6 +59,8 @@ class ClassicFlangMacroBuilder : public MacroBuilder {
 void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
                          const InputInfo &Output, const InputInfoList &Inputs,
                          const ArgList &Args, const char *LinkingOutput) const {
+  const Driver &D = getToolChain().getDriver();
+  const llvm::Triple &Triple = getToolChain().getEffectiveTriple();
   ArgStringList CommonCmdArgs;
   ArgStringList UpperCmdArgs;
   ArgStringList LowerCmdArgs;
@@ -366,13 +368,13 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
 
   // -Mipa has no effect
   if (Arg *A = Args.getLastArg(options::OPT_Mipa)) {
-    getToolChain().getDriver().Diag(diag::warn_drv_clang_unsupported)
+    D.Diag(diag::warn_drv_clang_unsupported)
       << A->getAsString(Args);
   }
 
   // -Minline has no effect
   if (Arg *A = Args.getLastArg(options::OPT_Minline_on)) {
-    getToolChain().getDriver().Diag(diag::warn_drv_clang_unsupported)
+    D.Diag(diag::warn_drv_clang_unsupported)
       << A->getAsString(Args);
   }
 
@@ -646,14 +648,14 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   // Use clang's predefined macros
   DiagnosticsEngine DE(new DiagnosticIDs(), new DiagnosticOptions, new IgnoringDiagConsumer());
   std::shared_ptr<clang::TargetOptions> TO = std::make_shared<clang::TargetOptions>();
-  TO->Triple = getToolChain().getEffectiveTriple().getTriple();
+  TO->Triple = Triple.getTriple();
   std::shared_ptr<TargetInfo> TI(clang::TargetInfo::CreateTargetInfo(DE, TO));
   std::string PredefineBuffer;
   llvm::raw_string_ostream Predefines(PredefineBuffer);
   ClassicFlangMacroBuilder Builder(UpperCmdArgs, Args, Predefines);
 
   LangOptions LO;
-  VersionTuple VT = getToolChain().computeMSVCVersion(&getToolChain().getDriver(), Args);
+  VersionTuple VT = getToolChain().computeMSVCVersion(&D, Args);
   if (!VT.empty()) {
     // Set the MSCompatibility version. Subminor version has 5 decimal digits.
     // Minor and major versions have 2 decimal digits each.
@@ -683,7 +685,7 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   DefineTypeSize("__LONG_MAX__", TargetInfo::SignedLong, *TI, Builder);
 
   // Add additional predefined macros
-  switch (getToolChain().getEffectiveTriple().getArch()) {
+  switch (Triple.getArch()) {
   case llvm::Triple::aarch64:
     UpperCmdArgs.push_back("-def"); UpperCmdArgs.push_back("__ARM_ARCH__=8");
     break;
@@ -777,7 +779,7 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
       Arg->claim();
       UpperCmdArgs.push_back("-extend");
     } else {
-      getToolChain().getDriver().Diag(diag::err_drv_unsupported_fixed_line_length)
+      D.Diag(diag::err_drv_unsupported_fixed_line_length)
         << Arg->getAsString(Args);
     }
   }
@@ -821,7 +823,7 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     } else if (Value == "95") { // Enable Fortran 2003 semantics
       UpperCmdArgs.push_back("-y"); // Unset XBIT
     } else {
-      getToolChain().getDriver().Diag(diag::err_drv_invalid_allocatable_mode)
+      D.Diag(diag::err_drv_invalid_allocatable_mode)
         << A->getAsString(Args);
     }
   } else { // No argument passed
@@ -970,6 +972,23 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
 
   // Remove "noinline" attriblute
   LowerCmdArgs.push_back("-x"); LowerCmdArgs.push_back("183"); LowerCmdArgs.push_back("0x10");
+
+
+  // Add target features
+  std::vector<StringRef> Features;
+  std::string FeatureList = "";
+  getTargetFeatureList(D, Triple, Args, UpperCmdArgs, false, Features);
+  if (!Features.empty()) {
+    for (unsigned I = 0, N = Features.size(); I < N; ++I) {
+      StringRef Name = Features[I];
+      FeatureList += Name.str();
+      if (I < (N - 1))
+        FeatureList += ',';
+    }
+
+    LowerCmdArgs.push_back("-target_features");
+    LowerCmdArgs.push_back(Args.MakeArgString(FeatureList));
+  }
 
   // Set a -x flag for second part of Fortran frontend
   for (Arg *A : Args.filtered(options::OPT_Mx_EQ)) {
