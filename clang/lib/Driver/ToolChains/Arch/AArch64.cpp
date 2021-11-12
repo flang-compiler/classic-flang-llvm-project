@@ -79,6 +79,25 @@ static bool DecodeAArch64Features(const Driver &D, StringRef text,
     else
       return false;
 
+    if (Feature == "sve2")
+      Features.push_back("+sve");
+    else if (Feature == "sve2-bitperm" || Feature == "sve2-sha3" ||
+             Feature == "sve2-aes" || Feature == "sve2-sm4") {
+      Features.push_back("+sve");
+      Features.push_back("+sve2");
+    } else if (Feature == "nosve") {
+      Features.push_back("-sve2");
+      Features.push_back("-sve2-bitperm");
+      Features.push_back("-sve2-sha3");
+      Features.push_back("-sve2-aes");
+      Features.push_back("-sve2-sm4");
+    } else if (Feature == "nosve2") {
+      Features.push_back("-sve2-bitperm");
+      Features.push_back("-sve2-sha3");
+      Features.push_back("-sve2-aes");
+      Features.push_back("-sve2-sm4");
+    }
+
     // +sve implies +f32mm if the base architecture is v8.6A or v8.7A
     // it isn't the case in general that sve implies both f64mm and f32mm
     if ((ArchKind == llvm::AArch64::ArchKind::ARMV8_6A ||
@@ -127,8 +146,10 @@ getAArch64ArchFeaturesFromMarch(const Driver &D, StringRef March,
 
   llvm::AArch64::ArchKind ArchKind = llvm::AArch64::parseArch(Split.first);
   if (ArchKind == llvm::AArch64::ArchKind::INVALID ||
-      !llvm::AArch64::getArchFeatures(ArchKind, Features) ||
-      (Split.second.size() &&
+      !llvm::AArch64::getArchFeatures(ArchKind, Features))
+    return false;
+
+  if ((Split.second.size() &&
        !DecodeAArch64Features(D, Split.second, Features, ArchKind)))
     return false;
 
@@ -404,9 +425,11 @@ fp16_fml_fallthrough:
     }
   }
 
-  auto V8_6Pos = llvm::find(Features, "+v8.6a");
-  if (V8_6Pos != std::end(Features))
-    V8_6Pos = Features.insert(std::next(V8_6Pos), {"+i8mm", "+bf16"});
+  const char *Archs[] = {"+v8.6a", "+v8.7a"};
+  auto Pos = std::find_first_of(Features.begin(), Features.end(),
+                                std::begin(Archs), std::end(Archs));
+  if (Pos != std::end(Features))
+    Pos = Features.insert(std::next(Pos), {"+i8mm", "+bf16"});
 
   if (Arg *A = Args.getLastArg(options::OPT_mno_unaligned_access,
                                options::OPT_munaligned_access)) {
