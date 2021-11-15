@@ -457,6 +457,8 @@ class LLVMConfig(object):
         just-built or optionally an installed clang, and add a set of standard
         substitutions useful to any test suite that makes use of clang.
 
+        Also sets up use of flang
+
         """
         # Clear some environment variables that might affect Clang.
         #
@@ -543,6 +545,14 @@ class LLVMConfig(object):
           self.add_tool_substitutions(tool_substitutions)
           self.config.substitutions.append(
               ('%resource_dir', builtin_include_dir))
+
+        self.config.flang = self.use_llvm_tool(
+            'flang', search_env='FLANG', required=required)
+        if self.config.flang:
+            tool_substitutions = [
+                ToolSubst('%flang', command=self.config.flang)
+                ]
+            self.add_tool_substitutions(tool_substitutions)
 
         self.config.substitutions.append(
             ('%itanium_abi_triple',
