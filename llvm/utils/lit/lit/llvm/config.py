@@ -544,6 +544,8 @@ class LLVMConfig(object):
 
         This function performs all the necessary setup to execute clang (or
         tooling based on clang) but does not actually add clang as a tool.
+        Also sets up the use of flang.
+
         """
         # Clear some environment variables that might affect Clang.
         #
@@ -746,6 +748,14 @@ class LLVMConfig(object):
             ]
             self.add_tool_substitutions(tool_substitutions)
             self.config.substitutions.append(("%resource_dir", builtin_include_dir))
+
+        self.config.flang = self.use_llvm_tool(
+            'flang', search_env='FLANG', required=required)
+        if self.config.flang:
+            tool_substitutions = [
+                ToolSubst('%flang', command=self.config.flang)
+                ]
+            self.add_tool_substitutions(tool_substitutions)
 
         # FIXME: Find nicer way to prohibit this.
         def prefer(this, to):
