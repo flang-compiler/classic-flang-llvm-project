@@ -27,6 +27,7 @@ class TestingConfig(object):
             "TERM",
             "CLANG",
             "CLANG_TOOLCHAIN_PROGRAM_TIMEOUT",
+            "FLANG",
             "LLDB",
             "LD_PRELOAD",
             "LLVM_SYMBOLIZER_PATH",
