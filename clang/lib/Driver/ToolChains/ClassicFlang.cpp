@@ -979,11 +979,10 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   std::string FeatureList = "";
   getTargetFeatureList(D, Triple, Args, UpperCmdArgs, false, Features);
   if (!Features.empty()) {
-    for (unsigned I = 0, N = Features.size(); I < N; ++I) {
-      StringRef Name = Features[I];
-      FeatureList += Name.str();
-      if (I < (N - 1))
+    for (auto Feature : unifyTargetFeatures(Features)) {
+      if (!FeatureList.empty())
         FeatureList += ',';
+      FeatureList += Feature;
     }
 
     LowerCmdArgs.push_back("-target_features");
