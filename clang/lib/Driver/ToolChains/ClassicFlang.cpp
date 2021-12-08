@@ -989,6 +989,20 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     LowerCmdArgs.push_back(Args.MakeArgString(FeatureList));
   }
 
+  // Add -msve-vector-bits=<bits>
+  if (Arg *A = Args.getLastArg(options::OPT_msve_vector_bits_EQ)) {
+    StringRef Val = A->getValue();
+    const Driver &D = getToolChain().getDriver();
+    if ( Val.equals("128") || Val.equals("256") || Val.equals("512") ||
+         Val.equals("1024") || Val.equals("2048") || Val.equals("scalable") ) {
+      LowerCmdArgs.push_back("-msve-vector-bits");
+      LowerCmdArgs.push_back(Args.MakeArgString(Val));
+    }
+    else
+    // Handle the unsupported values passed to msve-vector-bits.
+    D.Diag(diag::warn_drv_clang_unsupported) << A->getAsString(Args);
+  }
+
   // Set a -x flag for second part of Fortran frontend
   for (Arg *A : Args.filtered(options::OPT_Mx_EQ)) {
     A->claim();
