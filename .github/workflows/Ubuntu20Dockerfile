@@ -35,12 +35,11 @@ RUN apt-get install -y software-properties-common && \
     apt-get install -f -y llvm-11 clang-11
 
 # Install the tools for release_13x
-RUN apt-get install -y build-essential manpages-dev \
+RUN apt-get --fix-missing update && \
+    apt-get install -y build-essential manpages-dev \
     libssl-dev zlib1g-dev \
     libbz2-dev libreadline-dev libsqlite3-dev libncurses5-dev \
-    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl && \
-    add-apt-repository -y ppa:ubuntu-toolchain-r/test && \
-    apt-get install -y gcc-11 g++-11 python python3-distutils
+    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
 
 RUN cd /opt && \
     wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0-linux-aarch64.sh && \
@@ -52,7 +51,7 @@ RUN ln -s /usr/bin/ninja-build /usr/local/bin/ninja
 RUN mkdir /home/github/
 
 RUN mkdir /home/root && cd home/root && \
-    git clone --depth 1 --single-branch --branch release_12x https://github.com/flang-compiler/classic-flang-llvm-project.git classic-flang-llvm-project && \
+    git clone --depth 1 --single-branch --branch release_13x https://github.com/flang-compiler/classic-flang-llvm-project.git classic-flang-llvm-project && \
     cd classic-flang-llvm-project && \
     ./build-llvm-project.sh -t AArch64 -p /home/github/usr/local -n `nproc --ignore=1` -a /usr/bin/gcc-10 -b /usr/bin/g++-10 -i
 
