@@ -907,14 +907,11 @@ void MSVCToolChain::AddFortranStdlibLibArgs(const ArgList &Args,
   // In clang-cl.exe -MD and -MT control these options, but in
   // flang.exe like clang.exe these are different options for
   // dependency tracking. Let's assume that if somebody needs
-  // static flang libs, they need static runtime libs as well.
-  if (staticFlangLibs) {
-    CmdArgs.push_back("-linker");
-    CmdArgs.push_back("/defaultlib:libcmt.lib");
-  } else {
-    CmdArgs.push_back("-linker");
-    CmdArgs.push_back("/defaultlib:msvcrt.lib");
-  }
+  // static flang libs, they don't need static C runtime libs.
+  // FIXME: Use LLVM_USE_CRT_<CMAKE_BUILD_TYPE> variable
+  // to use libcmt.lib or msvcrt.lib
+  CmdArgs.push_back("-linker");
+  CmdArgs.push_back("/defaultlib:libcmt.lib");
 }
 #endif
 
