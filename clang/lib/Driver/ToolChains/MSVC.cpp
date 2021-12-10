@@ -336,12 +336,9 @@ void visualstudio::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles) &&
       !C.getDriver().IsCLMode()) {
 #ifdef ENABLE_CLASSIC_FLANG
-    if (!C.getDriver().IsFlangMode()) {
+    if (!C.getDriver().IsFlangMode())
 #endif
       CmdArgs.push_back("-defaultlib:libcmt");
-#ifdef ENABLE_CLASSIC_FLANG
-    }
-#endif
     CmdArgs.push_back("-defaultlib:oldnames");
   }
 
