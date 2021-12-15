@@ -126,6 +126,11 @@ public:
   void AddHIPIncludeArgs(const llvm::opt::ArgList &DriverArgs,
                          llvm::opt::ArgStringList &CC1Args) const override;
 
+#ifdef ENABLE_CLASSIC_FLANG
+  void AddFortranStdlibLibArgs(const llvm::opt::ArgList &Args,
+                               llvm::opt::ArgStringList &CmdArgs) const override;
+#endif
+
   bool getWindowsSDKLibraryPath(std::string &path) const;
   /// Check if Universal CRT should be used if available
   bool getUniversalCRTLibraryPath(std::string &path) const;

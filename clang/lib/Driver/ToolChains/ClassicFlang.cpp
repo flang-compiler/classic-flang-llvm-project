@@ -1072,6 +1072,14 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     LowerCmdArgs.push_back(Args.MakeArgString(OutFile));
   }
 
+  bool IsWindowsMSVC = getToolChain().getTriple().isWindowsMSVCEnvironment();
+  if (IsWindowsMSVC && !Args.hasArg(options::OPT_noFlangLibs)) {
+    getToolChain().AddFortranStdlibLibArgs(Args, LowerCmdArgs);
+    for (auto Arg : Args.filtered(options::OPT_noFlangLibs)) {
+      Arg->claim();
+    }
+  }
+
   C.addCommand(std::make_unique<Command>(JA, *this, ResponseFileSupport::AtFileUTF8(), LowerExec, LowerCmdArgs, Inputs));
 }
 
