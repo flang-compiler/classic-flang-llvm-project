@@ -27,9 +27,12 @@ jobs:
   lit-tests:
     name: Lit Tests
     runs-on: ${{ matrix.os }}
+    env:
+      install_prefix: /usr/local
     strategy:
       fail-fast: false
       matrix:
+        target: [X86]
         os:
           - ubuntu-latest
           # Use a specific version of macOS to ensure the CPLUS_INCLUDE_PATH workaround works.
@@ -49,17 +52,15 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1
         with:
           key: ${{ matrix.os }}
-      - name: Build and Test
-        uses: llvm/actions/build-test-llvm-project@main
-        with:
-          cmake_args: '-GNinja -DLLVM_ENABLE_PROJECTS="${{ inputs.projects }}" -DCMAKE_BUILD_TYPE=Release -DLLDB_INCLUDE_TESTS=OFF -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache'
-          build_target:  '${{ inputs.build_target }}'
-
-      - name: Build and Test libclc
-        if: "!startsWith(matrix.os, 'windows') && contains(inputs.projects, 'libclc')"
+      - name: Test clang macOS
+        if: ${{ matrix.os == 'macOS-10.15'}}
         run: |
-          # Make sure all of LLVM libraries that llvm-config needs are built.
-          ninja -C build
-          cmake -G Ninja -S libclc -B libclc-build -DLLVM_CONFIG=`pwd`/build/bin/llvm-config -DLIBCLC_TARGETS_TO_BUILD="amdgcn--;amdgcn--amdhsa;r600--;nvptx--;nvptx64--;nvptx--nvidiacl;nvptx64--nvidiacl"
-          ninja -C libclc-build
-          ninja -C libclc-build test
+          ./build-llvm-project.sh -t X86 -e "clang" -p /usr/local -s -n $(sysctl -n hw.logicalcpu) -i
+          cd build
+          make check-all
+      - name: Test clang ubuntu
+        if: ${{ matrix.os == 'ubuntu-latest'}}
+        run: |
+          ./build-llvm-project.sh -t X86 -e "${{ inputs.projects }}" -p /usr/local -s -n $(nproc) -i
+          cd build
+          make check-all
