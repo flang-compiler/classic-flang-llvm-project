@@ -18,9 +18,12 @@ jobs:
   build_clang:
     name: clang check-all
     runs-on: ${{ matrix.os }}
+    env:
+      install_prefix: /usr/local
     strategy:
       fail-fast: false
       matrix:
+        target: [X86]
         os:
           - ubuntu-latest
           - macOS-latest
@@ -39,8 +42,17 @@ jobs:
       uses: hendrikmuhs/ccache-action@v1
       with:
         key: ${{ matrix.os }}
-    - name: Test clang
-      uses: llvm/actions/build-test-llvm-project@main
-      with:
-        cmake_args: -G Ninja  -DLLVM_ENABLE_PROJECTS="clang" -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-        build_target: check-clang
+    - name: Test clang macOs
+      if: ${{ matrix.os == 'macOs-latest'}}
+      run: |      
+        nproc="sysctl -n hw.logicalcpu"
+        ./build-llvm-project.sh -t X86 -e "clang" -p /usr/local -s -n `$nproc` -i
+        cd build
+        make check-all
+    - name: Test clang ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest'}}
+      run: |      
+        ./build-llvm-project.sh -t X86 -p /usr/local -s -n $(nproc) -i
+        cd build
+        make check-all
+        

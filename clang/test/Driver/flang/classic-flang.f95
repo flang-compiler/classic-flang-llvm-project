@@ -3,7 +3,7 @@
 ! Check that the driver invokes flang1 correctly for preprocessed free-form
 ! Fortran code. Also check that the backend is invoked correctly.
 
-! RUN: %clang --driver-mode=flang -target x86_64-unknown-linux-gnu -c %s -### 2>&1 \
+! RUN: %flang -target x86_64-unknown-linux-gnu -c %s -### 2>&1 \
 ! RUN:   | FileCheck --check-prefix=CHECK-OBJECT %s
 ! CHECK-OBJECT: "{{.*}}flang1"
 ! CHECK-OBJECT-NOT: "-preprocess"
@@ -18,7 +18,7 @@
 ! Check that the driver invokes flang1 correctly when preprocessing is
 ! explicitly requested.
 
-! RUN: %clang --driver-mode=flang -target x86_64-unknown-linux-gnu -E %s -### 2>&1 \
+! RUN: %flang -target x86_64-unknown-linux-gnu -E %s -### 2>&1 \
 ! RUN:   | FileCheck --check-prefix=CHECK-PREPROCESS %s
 ! CHECK-PREPROCESS: "{{.*}}flang1"
 ! CHECK-PREPROCESS-SAME: "-preprocess"
@@ -32,7 +32,7 @@
 ! Check that the backend job (clang -cc1) is not combined into the compile job
 ! (flang2) even if -integrated-as is specified.
 
-! RUN: %clang --driver-mode=flang -target x86_64-unknown-linux-gnu -integrated-as -S %s -### 2>&1 \
+! RUN: %flang -target x86_64-unknown-linux-gnu -integrated-as -S %s -### 2>&1 \
 ! RUN:   | FileCheck --check-prefix=CHECK-ASM %s
 ! CHECK-ASM: "{{.*}}flang1"
 ! CHECK-ASM-NEXT: "{{.*}}flang2"

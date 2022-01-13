@@ -33,8 +33,16 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 250
-    - name: Test llvm
-      uses: llvm/actions/build-test-llvm-project@main
-      with:
-        cmake_args: -G Ninja -DCMAKE_BUILD_TYPE=Release
-
+    - name: Test llvm macOs
+      if: ${{ matrix.os == 'macOs-latest'}}
+      run: |      
+        nproc="sysctl -n hw.logicalcpu"
+        ./build-llvm-project.sh -t X86 -e "clang" -p /usr/local -s -n `$nproc` -i
+        cd build
+        make check-all
+    - name: Test llvm ubuntu
+      if: ${{ matrix.os == 'ubuntu-latest'}}
+      run: |      
+        ./build-llvm-project.sh -t X86 -p /usr/local -s -n $(nproc) -i
+        cd build
+        make check-all

@@ -997,10 +997,10 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
          Val.equals("1024") || Val.equals("2048") || Val.equals("scalable") ) {
       LowerCmdArgs.push_back("-msve-vector-bits");
       LowerCmdArgs.push_back(Args.MakeArgString(Val));
+    } else {
+      // Handle the unsupported values passed to msve-vector-bits.
+      D.Diag(diag::warn_drv_clang_unsupported) << A->getAsString(Args);
     }
-    else
-    // Handle the unsupported values passed to msve-vector-bits.
-    D.Diag(diag::warn_drv_clang_unsupported) << A->getAsString(Args);
   }
 
   // Set a -x flag for second part of Fortran frontend
