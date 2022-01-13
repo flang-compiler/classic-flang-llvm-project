@@ -9,6 +9,7 @@ DO_INSTALL="0"
 USE_SUDO="0"
 C_COMPILER_PATH="/usr/bin/gcc"
 CXX_COMPILER_PATH="/usr/bin/g++"
+LLVM_ENABLE_PROJECTS="clang;openmp"
 
 set -e # Exit script on first error.
 
@@ -32,8 +33,9 @@ function print_usage {
     echo "  -s  Use sudo to install. Default: 0 - do not use sudo";
     echo "  -a  C compiler path. Default: /usr/bin/gcc";
     echo "  -b  C++ compiler path. Default: /usr/bin/g++";
+    echo "  -e  List of the LLVM sub-projects to build. Default: clang;openmp";
 }
-while getopts "t:p:n:c?i?s?a:b:" opt; do
+while getopts "t:p:n:c?i?s?a:b:e:" opt; do
     case "$opt" in
         t)  TARGET=$OPTARG;;
         p)  INSTALL_PREFIX=$OPTARG;;
@@ -43,6 +45,7 @@ while getopts "t:p:n:c?i?s?a:b:" opt; do
         s)  USE_SUDO="1";;
         a)  C_COMPILER_PATH=$OPTARG;;
         b)  CXX_COMPILER_PATH=$OPTARG;;
+        e)  LLVM_ENABLE_PROJECTS=$OPTARG;;
         ?) print_usage; exit 0;;
     esac
 done
@@ -66,7 +69,7 @@ fi
 
 # Build and install
 mkdir -p build && cd build
-cmake $CMAKE_OPTIONS -DLLVM_ENABLE_PROJECTS="clang;openmp" ../llvm
+cmake $CMAKE_OPTIONS -DLLVM_ENABLE_PROJECTS=$LLVM_ENABLE_PROJECTS ../llvm
 make -j$NPROC
 if [ $DO_INSTALL == "1" ]; then
   if [ $USE_SUDO == "1" ]; then
