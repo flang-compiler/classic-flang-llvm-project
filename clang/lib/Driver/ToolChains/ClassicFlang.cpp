@@ -995,6 +995,40 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     LowerCmdArgs.push_back(Args.MakeArgString(FeatureList));
   }
 
+  // Add vscale range
+  unsigned vscaleMin = 1U;
+  unsigned vscaleMax = 16U;
+  bool hasVscaleRange = false;
+  if (Arg *A = Args.getLastArg(options::OPT_msve_vector_bits_EQ)) {
+    StringRef Val = A->getValue();
+
+    if (Val.equals("scalable"))
+      hasVscaleRange = true;
+    else {
+      unsigned bits = (std::stoul(Val.str()) >> 7U);
+
+      if ((bits < vscaleMin) || (bits > vscaleMax)) {
+        D.Diag(diag::warn_drv_clang_unsupported) << A->getAsString(Args);
+        hasVscaleRange = false;
+      } else {
+        vscaleMin = vscaleMax = bits;
+        hasVscaleRange = true;
+      }
+    }
+  }
+  for (auto Feature : unifyTargetFeatures(Features)) {
+    if (Feature.startswith("+sve")) {
+      hasVscaleRange = true;
+      break;
+    }
+  }
+  if (hasVscaleRange) {
+    LowerCmdArgs.push_back("-vscale_range_min");
+    LowerCmdArgs.push_back(Args.MakeArgString(std::to_string(vscaleMin)));
+    LowerCmdArgs.push_back("-vscale_range_max");
+    LowerCmdArgs.push_back(Args.MakeArgString(std::to_string(vscaleMax)));
+  }
+
   // Set a -x flag for second part of Fortran frontend
   for (Arg *A : Args.filtered(options::OPT_Mx_EQ)) {
     A->claim();
