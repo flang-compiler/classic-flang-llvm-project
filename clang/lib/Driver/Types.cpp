@@ -402,6 +402,9 @@ types::getCompilationPhases(const clang::driver::Driver &Driver,
   else if (DAL.getLastArg(options::OPT_fsyntax_only) ||
            DAL.getLastArg(options::OPT_print_supported_cpus) ||
            DAL.getLastArg(options::OPT_module_file_info) ||
+#ifdef ENABLE_CLASSIC_FLANG
+           DAL.getLastArg(options::OPT_emit_flang_llvm) ||
+#endif
            DAL.getLastArg(options::OPT_verify_pch) ||
            DAL.getLastArg(options::OPT_rewrite_objc) ||
            DAL.getLastArg(options::OPT_rewrite_legacy_objc) ||
