@@ -86,6 +86,13 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     llvm::sys::path::replace_extension(Stem, "");
   }
 
+#ifdef ENABLE_CLASSIC_FLANG
+  if (Args.hasArg(options::OPT_emit_flang_llvm)) {
+    // -emit-flang-llvm only supports asm output so claim -S to prevent warning
+    Args.ClaimAllArgs(options::OPT_S);
+  }
+#endif
+
   // Add input file name to the compilation line
   UpperCmdArgs.push_back(Input.getBaseInput());
 
