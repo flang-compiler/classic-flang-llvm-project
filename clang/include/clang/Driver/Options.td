@@ -1525,6 +1525,10 @@ def d_Joined : Joined<["-"], "d">, Group<d_Group>;
 def emit_ast : Flag<["-"], "emit-ast">,
   Visibility<[ClangOption, CLOption, DXCOption]>,
   HelpText<"Emit Clang AST files for source inputs">;
+#ifdef ENABLE_CLASSIC_FLANG
+def emit_flang_llvm : Flag<["-"], "emit-flang-llvm">,
+  HelpText<"Emit Flang LLVM files for source inputs">;
+#endif
 def emit_llvm : Flag<["-"], "emit-llvm">,
   Visibility<[ClangOption, CC1Option, FC1Option, FlangOption]>,
   Group<Action_Group>,
