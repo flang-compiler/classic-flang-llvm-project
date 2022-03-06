@@ -38,7 +38,7 @@ RUN apt-get install -y software-properties-common && \
 RUN apt --fix-missing update && \
     apt install -y build-essential manpages-dev \
     libssl-dev zlib1g-dev \
-    libbz2-dev libreadline-dev libsqlite3-dev libncurses5-dev \
+    libbz2-dev libreadline-dev libsqlite3-dev libncurses5-dev && \
     apt install -y python3-distutils python3-psutil \
     libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
 
