@@ -132,6 +132,11 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     CommonCmdArgs.push_back("-nosave");
   }
 
+  for (auto Arg : Args.filtered(options::OPT_dM)) {
+    Arg->claim();
+    UpperCmdArgs.push_back("-list-macros");
+  }
+
   // Treat denormalized numbers as zero: On
   for (auto Arg : Args.filtered(options::OPT_Mdaz_on)) {
     Arg->claim();
