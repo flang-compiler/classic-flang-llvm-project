@@ -2187,7 +2187,14 @@ void Driver::BuildInputs(const ToolChain &TC, DerivedArgList &Args,
           if (!Args.hasArgNoClaim(options::OPT_E) && !CCCIsCPP())
             Diag(IsCLMode() ? clang::diag::err_drv_unknown_stdin_type_clang_cl
                             : clang::diag::err_drv_unknown_stdin_type);
-          Ty = types::TY_C;
+          if (IsFlangMode()) { 
+#ifdef ENABLE_CLASSIC_FLANG
+            Ty = types::TY_PP_F_FreeForm; 
+#else
+            Ty = types::TY_PP_Fortran;
+#endif
+          } else
+            Ty = types::TY_C;
         } else {
           // Otherwise lookup by extension.
           // Fallback is C if invoked as C preprocessor, C++ if invoked with
