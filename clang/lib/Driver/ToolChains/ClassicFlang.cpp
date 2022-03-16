@@ -82,12 +82,23 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     Stem = C.getDriver().GetTemporaryPath("", "");
   } else {
     OutFile = Output.getFilename();
+    if (OutFile == "-.ll")
+      OutFile = "tmp";
     Stem = llvm::sys::path::filename(OutFile);
     llvm::sys::path::replace_extension(Stem, "");
   }
 
   // Add input file name to the compilation line
-  UpperCmdArgs.push_back(Input.getBaseInput());
+  const char *InputFile = Input.getBaseInput();
+  if (strcmp(InputFile, "-") == 0)
+  // FIXME: done specially for handling flang -E -dM - < /dev/null
+#if defined(_WIN32) || defined(_WIN64)
+    UpperCmdArgs.push_back("nul");
+#else
+    UpperCmdArgs.push_back("/dev/stdin");
+#endif
+  else
+    UpperCmdArgs.push_back(Input.getBaseInput());
 
   // Add temporary output for ILM
   const char * ILMFile = Args.MakeArgString(Stem + ".ilm");
