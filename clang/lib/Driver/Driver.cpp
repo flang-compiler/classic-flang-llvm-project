@@ -5086,9 +5086,11 @@ class ToolSelector final {
     if (!T->hasIntegratedBackend() && !(OutputIsLLVM && T->canEmitIR()))
       return nullptr;
 
+#ifdef ENABLE_CLASSIC_FLANG
     // Classic Flang is not integrated with the backend.
     if (C.getDriver().IsFlangMode() && !T->hasIntegratedAssembler())
       return nullptr;
+#endif
 
     if (T->canEmitIR() && ((SaveTemps && !InputIsBitcode) || EmbedBitcode))
       return nullptr;
