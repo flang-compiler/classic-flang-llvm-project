@@ -2,6 +2,7 @@
 
 # Initialize our own variables:
 TARGET="X86"
+BUILD_TYPE="Release"
 INSTALL_PREFIX="/usr/local"
 NPROC=1
 USE_CCACHE="0"
@@ -26,6 +27,7 @@ function print_usage {
     echo "";
     echo "Options:";
     echo "  -t  Target to build for (X86, AArch64, PowerPC). Default: X86";
+    echo "  -d  Set the CMake build type. Default: Release";
     echo "  -p  Install prefix. Default: /usr/local";
     echo "  -n  Number of parallel jobs. Default: 1";
     echo "  -c  Use ccache. Default: 0 - do not use ccache";
@@ -35,9 +37,10 @@ function print_usage {
     echo "  -b  C++ compiler path. Default: /usr/bin/g++";
     echo "  -e  List of the LLVM sub-projects to build. Default: clang;openmp";
 }
-while getopts "t:p:n:c?i?s?a:b:e:" opt; do
+while getopts "t:d:p:n:c?i?s?a:b:e:" opt; do
     case "$opt" in
         t)  TARGET=$OPTARG;;
+        d)  BUILD_TYPE=$OPTARG;;
         p)  INSTALL_PREFIX=$OPTARG;;
         n)  NPROC=$OPTARG;;
         c)  USE_CCACHE="1";;
@@ -51,7 +54,7 @@ while getopts "t:p:n:c?i?s?a:b:e:" opt; do
 done
 
 CMAKE_OPTIONS="-DCMAKE_INSTALL_PREFIX=$INSTALL_PREFIX \
-    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_BUILD_TYPE=$BUILD_TYPE \
     -DCMAKE_C_COMPILER=$C_COMPILER_PATH \
     -DCMAKE_CXX_COMPILER=$CXX_COMPILER_PATH \
     -DLLVM_TARGETS_TO_BUILD=$TARGET \
