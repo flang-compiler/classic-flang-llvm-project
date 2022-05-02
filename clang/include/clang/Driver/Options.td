@@ -533,7 +533,7 @@ class InternalDriverOpt : Group<internal_driver_Group>,
   Flags<[NoXarchOption, HelpHidden]>;
 def driver_mode : Joined<["--"], "driver-mode=">, Group<internal_driver_Group>,
   Flags<[CoreOption, NoXarchOption, HelpHidden]>,
-  HelpText<"Set the driver mode to either 'gcc', 'g++', 'cpp', 'cl', or 'fortran'">;
+  HelpText<"Set the driver mode to one of: 'gcc', 'g++', 'cpp', 'cl', or 'flang'">;
 def rsp_quoting : Joined<["--"], "rsp-quoting=">, Group<internal_driver_Group>,
   Flags<[CoreOption, NoXarchOption, HelpHidden]>,
   HelpText<"Set the rsp quoting to either 'posix', or 'windows'">;
@@ -4790,12 +4790,6 @@ defm devirtualize : BooleanFFlag<"devirtualize">, Group<clang_ignored_gcc_optimi
 defm devirtualize_speculatively : BooleanFFlag<"devirtualize-speculatively">,
     Group<clang_ignored_gcc_optimization_f_Group>;
 
-// gfortran options that we recognize in the driver and pass along when
-// invoking GCC to compile Fortran code.
-def flang_rt_Group : OptionGroup<"Flang runtime library Group">;
-def pgi_fortran_Group : OptionGroup<"PGI Fortran compatibility Group">,
-  Flags<[HelpHidden]>;
-
 // Generic gfortran options.
 def A_DASH : Joined<["-"], "A-">, Group<gfortran_Group>;
 def static_libgfortran : Flag<["-"], "static-libgfortran">, Group<gfortran_Group>;
@@ -4817,8 +4811,6 @@ def fmax_stack_var_size_EQ : Joined<["-"], "fmax-stack-var-size=">, Group<gfortr
 def fmax_subrecord_length_EQ : Joined<["-"], "fmax-subrecord-length=">, Group<gfortran_Group>;
 def frecord_marker_EQ : Joined<["-"], "frecord-marker=">, Group<gfortran_Group>;
 
-// Define a group for Fortran source format
-def fortran_format_Group : OptionGroup<"Fortran format Group">, Group<gfortran_Group>;
 // "f" flags for gfortran.
 defm aggressive_function_elimination : BooleanFFlag<"aggressive-function-elimination">, Group<gfortran_Group>;
 defm align_commons : BooleanFFlag<"align-commons">, Group<gfortran_Group>;
@@ -4830,19 +4822,13 @@ defm check_array_temporaries : BooleanFFlag<"check-array-temporaries">, Group<gf
 defm cray_pointer : BooleanFFlag<"cray-pointer">, Group<gfortran_Group>;
 defm d_lines_as_code : BooleanFFlag<"d-lines-as-code">, Group<gfortran_Group>;
 defm d_lines_as_comments : BooleanFFlag<"d-lines-as-comments">, Group<gfortran_Group>;
-def default_integer_8_fno : Flag<["-"], "fno-default-integer-8">, Group<gfortran_Group>;
-def default_real_8_fno : Flag<["-"], "fno-default-real-8">, Group<gfortran_Group>;
 defm dollar_ok : BooleanFFlag<"dollar-ok">, Group<gfortran_Group>;
 defm dump_fortran_optimized : BooleanFFlag<"dump-fortran-optimized">, Group<gfortran_Group>;
 defm dump_fortran_original : BooleanFFlag<"dump-fortran-original">, Group<gfortran_Group>;
 defm dump_parse_tree : BooleanFFlag<"dump-parse-tree">, Group<gfortran_Group>;
 defm external_blas : BooleanFFlag<"external-blas">, Group<gfortran_Group>;
 defm f2c : BooleanFFlag<"f2c">, Group<gfortran_Group>;
-def fixed_form_off : Flag<["-"], "fno-fixed-form">, Group<fortran_format_Group>,
-  HelpText<"Disable fixed-form format for Fortran">;
-def free_form_off : Flag<["-"], "fno-free-form">, Group<fortran_format_Group>,
-  HelpText<"Disable free-form format for Fortran">;
-defm frontend_optimize : BooleanFFlag<"frontend-optimize">, Group<fortran_format_Group>;
+defm frontend_optimize : BooleanFFlag<"frontend-optimize">, Group<gfortran_Group>;
 defm init_local_zero : BooleanFFlag<"init-local-zero">, Group<gfortran_Group>;
 defm integer_4_integer_8 : BooleanFFlag<"integer-4-integer-8">, Group<gfortran_Group>;
 defm max_identifier_length : BooleanFFlag<"max-identifier-length">, Group<gfortran_Group>;
@@ -4894,9 +4880,9 @@ def Xflang : Separate<["-"], "Xflang">,
 
 let Flags = [FC1Option, FlangOption, FlangOnlyOption] in {
 
-def cpp : Flag<["-"], "cpp">, Group<gfortran_Group>,
+def cpp : Flag<["-"], "cpp">, Group<f_Group>,
   HelpText<"Enable predefined and command line preprocessor macros">;
-def nocpp : Flag<["-"], "nocpp">, Group<gfortran_Group>,
+def nocpp : Flag<["-"], "nocpp">, Group<f_Group>,
   HelpText<"Disable predefined and command line preprocessor macros">;
 def module_dir : JoinedOrSeparate<["-"], "module-dir">, MetaVarName<"<dir>">,
   HelpText<"Put MODULE files in <dir>">,
@@ -4904,34 +4890,48 @@ def module_dir : JoinedOrSeparate<["-"], "module-dir">, MetaVarName<"<dir>">,
 It is also added to the list of directories to be searched by an USE statement.
 The default is the current directory.}]>;
 
+#ifdef ENABLE_CLASSIC_FLANG
+// Define a group for Fortran source format options.
+def fortran_format_Group : OptionGroup<"Fortran format Group">, Group<gfortran_Group>;
 def ffixed_form : Flag<["-"], "ffixed-form">, Group<fortran_format_Group>,
   HelpText<"Process source files in fixed form">;
-#ifdef ENABLE_CLASSIC_FLANG
 def fno_fixed_form : Flag<["-"], "fno-fixed-form">, Group<fortran_format_Group>,
   HelpText<"Disable fixed-form format for Fortran">;
-#endif
 def ffree_form : Flag<["-"], "ffree-form">, Group<fortran_format_Group>,
   HelpText<"Process source files in free form">;
-#ifdef ENABLE_CLASSIC_FLANG
 def fno_free_form : Flag<["-"], "fno-free-form">, Group<fortran_format_Group>,
   HelpText<"Disable free-form format for Fortran">;
-#endif
-def ffixed_line_length_EQ : Joined<["-"], "ffixed-line-length=">, Group<gfortran_Group>,
+def ffixed_line_length_VALUE : Joined<["-"], "ffixed-line-length-">, Group<gfortran_Group>,
+  HelpText<"Set line length in fixed-form format Fortran, current supporting only 72 and 132 characters">;
+#else
+def ffixed_form : Flag<["-"], "ffixed-form">, Group<f_Group>,
+  HelpText<"Process source files in fixed form">;
+def ffree_form : Flag<["-"], "ffree-form">, Group<f_Group>,
+  HelpText<"Process source files in free form">;
+def ffixed_line_length_EQ : Joined<["-"], "ffixed-line-length=">, Group<f_Group>,
   HelpText<"Use <value> as character line width in fixed mode">,
   DocBrief<[{Set column after which characters are ignored in typical fixed-form lines in the source
 file}]>;
-def ffixed_line_length_VALUE : Joined<["-"], "ffixed-line-length-">, Group<gfortran_Group>,
-  HelpText<"Set line length in fixed-form format Fortran, current supporting only 72 and 132 characters">;
+def ffixed_line_length_VALUE : Joined<["-"], "ffixed-line-length-">, Group<f_Group>, Alias<ffixed_line_length_EQ>;
+#endif
+
 def fopenacc : Flag<["-"], "fopenacc">, Group<f_Group>,
   HelpText<"Enable OpenACC">;
-def fdefault_double_8 : Flag<["-"],"fdefault-double-8">, Group<gfortran_Group>,
+def fdefault_double_8 : Flag<["-"],"fdefault-double-8">, Group<f_Group>,
   HelpText<"Set the default double precision kind to an 8 byte wide type">;
-def fdefault_integer_8 : Flag<["-"],"fdefault-integer-8">, Group<gfortran_Group>,
+def fdefault_integer_8 : Flag<["-"],"fdefault-integer-8">, Group<f_Group>,
   HelpText<"Set the default integer kind to an 8 byte wide type">;
-def fdefault_real_8 : Flag<["-"],"fdefault-real-8">, Group<gfortran_Group>,
+#ifdef ENABLE_CLASSIC_FLANG
+def fno_default_integer_8 : Flag<["-"], "fno-default-integer-8">, Group<f_Group>;
+#endif
+def fdefault_real_8 : Flag<["-"],"fdefault-real-8">, Group<f_Group>,
   HelpText<"Set the default real kind to an 8 byte wide type">;
+#ifdef ENABLE_CLASSIC_FLANG
+def fno_default_real_8 : Flag<["-"], "fno-default-real-8">, Group<f_Group>;
+#endif
 def flarge_sizes : Flag<["-"],"flarge-sizes">, Group<f_Group>,
   HelpText<"Use INTEGER(KIND=8) for the result type in size-related intrinsics">;
+
 def falternative_parameter_statement : Flag<["-"], "falternative-parameter-statement">, Group<f_Group>,
   HelpText<"Enable the old style PARAMETER statement">;
 def fintrinsic_modules_path : Separate<["-"], "fintrinsic-modules-path">,  Group<f_Group>, MetaVarName<"<dir>">,
@@ -6948,6 +6948,13 @@ def enable_16bit_types : DXCFlag<"enable-16bit-types">, Alias<fnative_half_type>
   HelpText<"Enable 16-bit types and disable min precision types."
            "Available in HLSL 2018 and shader model 6.2.">;
 
+#ifdef ENABLE_CLASSIC_FLANG
+// Classic Flang options that we recognize in the driver and pass along when
+// invoking flang1/flang2 to compile Fortran code.
+def flang_rt_Group : OptionGroup<"Flang runtime library Group">;
+def pgi_fortran_Group : OptionGroup<"PGI Fortran compatibility Group">,
+  Flags<[HelpHidden]>;
+
 // Classic Flang-specific options
 multiclass BooleanKFlag<string name> {
   def _on : Flag<["-"], "K"#name>;
@@ -7080,3 +7087,4 @@ def Hq_EQ : Joined<["-"], "Hq,">, Group<pgi_fortran_Group>;
 def Mqq_EQ : Joined<["-"], "Mqq,">, Group<pgi_fortran_Group>;
 def Hqq_EQ : Joined<["-"], "Hqq,">, Group<pgi_fortran_Group>;
 def Wh_EQ : Joined<["-"], "Wh,">, Group<pgi_fortran_Group>;
+#endif

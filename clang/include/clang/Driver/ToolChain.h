@@ -623,6 +623,7 @@ public:
   AddClangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
                             llvm::opt::ArgStringList &CC1Args) const;
 
+#ifdef ENABLE_CLASSIC_FLANG
   /// \brief Add the flang arguments for system include paths.
   ///
   /// This routine is responsible for adding the -stdinc argument to
@@ -630,6 +631,7 @@ public:
   virtual void
   AddFlangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
                             llvm::opt::ArgStringList &Flang1Args) const { }
+#endif
 
   /// Add options that need to be passed to cc1 for this target.
   virtual void addClangTargetOptions(const llvm::opt::ArgList &DriverArgs,
@@ -728,10 +730,12 @@ public:
   virtual void AddHIPRuntimeLibArgs(const llvm::opt::ArgList &Args,
                                     llvm::opt::ArgStringList &CmdArgs) const {}
 
+#ifdef ENABLE_CLASSIC_FLANG
   /// AddFortranStdlibLibArgs - Add the system specific linker arguments to use
   /// for the given Fortran runtime library type.
   virtual void AddFortranStdlibLibArgs(const llvm::opt::ArgList &Args,
                                        llvm::opt::ArgStringList &CmdArgs) const;
+#endif
 
   /// Return sanitizers which are available in this toolchain.
   virtual SanitizerMask getSupportedSanitizers() const;

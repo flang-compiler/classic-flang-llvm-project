@@ -13,7 +13,9 @@ if(WIN32)
 endif()
 
 if(LLVM_ENABLE_CLASSIC_FLANG)
-  set(CLASSIC_FLANG_FILES ToolChains/ClassicFlang.cpp)
+  set(TOOLCHAINS_FLANG_CPP ToolChains/ClassicFlang.cpp)
+else()
+  set(TOOLCHAINS_FLANG_CPP ToolChains/Flang.cpp)
 endif()
 
 add_clang_library(clangDriver
@@ -55,7 +57,7 @@ add_clang_library(clangDriver
   ToolChains/Cuda.cpp
   ToolChains/Darwin.cpp
   ToolChains/DragonFly.cpp
-  ToolChains/Flang.cpp
+  ${TOOLCHAINS_FLANG_CPP}
   ToolChains/FreeBSD.cpp
   ToolChains/Fuchsia.cpp
   ToolChains/Gnu.cpp
@@ -90,7 +92,6 @@ add_clang_library(clangDriver
   ToolChains/ZOS.cpp
   Types.cpp
   XRayArgs.cpp
-  ${CLASSIC_FLANG_FILES}
 
   DEPENDS
   ClangDriverOptions
