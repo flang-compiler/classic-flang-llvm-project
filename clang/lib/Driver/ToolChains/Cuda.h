@@ -219,6 +219,11 @@ public:
       llvm::opt::ArgStringList &CC1Args) const override;
   void AddIAMCUIncludeArgs(const llvm::opt::ArgList &DriverArgs,
                            llvm::opt::ArgStringList &CC1Args) const override;
+#ifdef ENABLE_CLASSIC_FLANG
+  void
+  AddFlangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
+                            llvm::opt::ArgStringList &Flang1Args) const override;
+#endif
 
   SanitizerMask getSupportedSanitizers() const override;
 
@@ -227,12 +232,6 @@ public:
                      const llvm::opt::ArgList &Args) const override;
 
   const ToolChain &HostTC;
-
-#ifdef ENABLE_CLASSIC_FLANG
-  void
-  AddFlangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
-                            llvm::opt::ArgStringList &Flang1Args) const override;
-#endif
 
 protected:
   Tool *buildAssembler() const override; // ptxas
