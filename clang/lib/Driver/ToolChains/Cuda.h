@@ -214,6 +214,11 @@ public:
       llvm::opt::ArgStringList &CC1Args) const override;
   void AddIAMCUIncludeArgs(const llvm::opt::ArgList &DriverArgs,
                            llvm::opt::ArgStringList &CC1Args) const override;
+#ifdef ENABLE_CLASSIC_FLANG
+  void
+  AddFlangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
+                            llvm::opt::ArgStringList &Flang1Args) const override;
+#endif
 
   SanitizerMask getSupportedSanitizers() const override;
 
@@ -222,12 +227,6 @@ public:
                      const llvm::opt::ArgList &Args) const override;
 
   const ToolChain &HostTC;
-
-#ifdef ENABLE_CLASSIC_FLANG
-  void
-  AddFlangSystemIncludeArgs(const llvm::opt::ArgList &DriverArgs,
-                            llvm::opt::ArgStringList &Flang1Args) const override;
-#endif
 
   /// Uses nvptx-arch tool to get arch of the system GPU. Will return error
   /// if unable to find one.
