@@ -366,10 +366,10 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   // Handle -fdefault-real-8 (and its alias, -r8) and -fno-default-real-8
   if (Arg *A = Args.getLastArg(options::OPT_r8,
                                options::OPT_fdefault_real_8,
-                               options::OPT_default_real_8_fno)) {
+                               options::OPT_fno_default_real_8)) {
     const char * fl;
     // For -f version add -x flag, for -fno add -y
-    if (A->getOption().matches(options::OPT_default_real_8_fno)) {
+    if (A->getOption().matches(options::OPT_fno_default_real_8)) {
       fl = "-y";
     } else {
       fl = "-x";
@@ -377,7 +377,7 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
 
     for (Arg *A : Args.filtered(options::OPT_r8,
                                 options::OPT_fdefault_real_8,
-                                options::OPT_default_real_8_fno)) {
+                                options::OPT_fno_default_real_8)) {
       A->claim();
     }
 
@@ -392,10 +392,10 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   // Process and claim -i8/-fdefault-integer-8/-fno-default-integer-8 argument
   if (Arg *A = Args.getLastArg(options::OPT_i8,
                                options::OPT_fdefault_integer_8,
-                               options::OPT_default_integer_8_fno)) {
+                               options::OPT_fno_default_integer_8)) {
     const char * fl;
 
-    if (A->getOption().matches(options::OPT_default_integer_8_fno)) {
+    if (A->getOption().matches(options::OPT_fno_default_integer_8)) {
       fl = "-y";
     } else {
       fl = "-x";
@@ -403,7 +403,7 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
 
     for (Arg *A : Args.filtered(options::OPT_i8,
                                 options::OPT_fdefault_integer_8,
-                                options::OPT_default_integer_8_fno)) {
+                                options::OPT_fno_default_integer_8)) {
       A->claim();
     }
 
@@ -727,14 +727,14 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
         default:
           llvm_unreachable("missed a case");
          case options::OPT_ffixed_form:
-         case options::OPT_free_form_off:
+         case options::OPT_fno_free_form:
          case options::OPT_Mfixed:
          case options::OPT_Mfree_off:
          case options::OPT_Mfreeform_off:
            UpperCmdArgs.push_back("-nofreeform");
            break;
          case options::OPT_ffree_form:
-         case options::OPT_fixed_form_off:
+         case options::OPT_fno_fixed_form:
          case options::OPT_Mfree_on:
          case options::OPT_Mfreeform_on:
            UpperCmdArgs.push_back("-freeform");
