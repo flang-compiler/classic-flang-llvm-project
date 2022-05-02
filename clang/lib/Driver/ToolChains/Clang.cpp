@@ -4956,14 +4956,13 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
     }
   }
 
-#ifdef ENABLE_CLASSIC_FLANG
+#ifndef ENABLE_CLASSIC_FLANG
+  Args.AddLastArg(CmdArgs, options::OPT_fveclib);
+#else
   if (Args.getLastArg(options::OPT_fveclib))
     Args.AddLastArg(CmdArgs, options::OPT_fveclib);
   else
     CmdArgs.push_back("-fveclib=PGMATH");
-#else
-  Args.AddLastArg(CmdArgs, options::OPT_fveclib);
-#endif
 
   std::string PassRemarkVal(""), PassRemarkOpt("");
   if (Args.getLastArg(options::OPT_Minfoall)) {
@@ -5018,6 +5017,7 @@ void Clang::ConstructJob(Compilation &C, const JobAction &JA,
   CmdArgs.push_back("-mllvm");
   CmdArgs.push_back(Args.MakeArgString(PassRemarkOpt));
   Args.ClaimAllArgs(options::OPT_Mneginfo_EQ);
+#endif
 
   if (Args.hasFlag(options::OPT_fmerge_all_constants,
                    options::OPT_fno_merge_all_constants, false))

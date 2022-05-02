@@ -119,6 +119,7 @@ static void renderRemarksHotnessOptions(const ArgList &Args,
         Twine("--plugin-opt=opt-remarks-hotness-threshold=") + A->getValue()));
 }
 
+#ifdef ENABLE_CLASSIC_FLANG
 /// \brief Determine if Fortran "main" object is needed
 static bool needFortranMain(const Driver &D, const ArgList &Args) {
   return (needFortranLibs(D, Args)
@@ -135,6 +136,7 @@ bool tools::needFortranLibs(const Driver &D, const ArgList &Args) {
 
   return false;
 }
+#endif
 
 void tools::addPathIfExists(const Driver &D, const Twine &Path,
                             ToolChain::path_list &Paths) {
@@ -243,7 +245,9 @@ void tools::AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
                             const ArgList &Args, ArgStringList &CmdArgs,
                             const JobAction &JA) {
   const Driver &D = TC.getDriver();
+#ifdef ENABLE_CLASSIC_FLANG
   bool SeenFirstLinkerInput = false;
+#endif
 
   // Add extra linker input arguments which are not treated as inputs
   // (constructed via -Xarch_).
@@ -272,7 +276,7 @@ void tools::AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
       CmdArgs.push_back(II.getFilename());
       continue;
     }
-
+#ifdef ENABLE_CLASSIC_FLANG
     // Add Fortan "main" before the first linker input
     if (!SeenFirstLinkerInput) {
       if (needFortranMain(D, Args)) {
@@ -280,7 +284,7 @@ void tools::AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
       }
       SeenFirstLinkerInput = true;
     }
-
+#endif
     // Otherwise, this is a linker input argument.
     const Arg &A = II.getInputArg();
 
@@ -306,7 +310,7 @@ void tools::AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
       A.renderAsInput(Args, CmdArgs);
     }
   }
-
+#ifdef ENABLE_CLASSIC_FLANG
   if (!SeenFirstLinkerInput && needFortranMain(D, Args)) {
     CmdArgs.push_back("-lflangmain");
   }
@@ -315,6 +319,7 @@ void tools::AddLinkerInputs(const ToolChain &TC, const InputInfoList &Inputs,
   for (auto Arg : Args.filtered(options::OPT_no_fortran_main, options::OPT_Mnomain)) {
     Arg->claim();
   }
+#endif
 }
 
 void tools::addLinkerCompressDebugSectionsOption(

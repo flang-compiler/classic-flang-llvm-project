@@ -269,9 +269,13 @@ Tool *ToolChain::getClang() const {
 }
 
 Tool *ToolChain::getFlang() const {
+#ifndef ENABLE_CLASSIC_FLANG
   if (!Flang)
     Flang.reset(new tools::Flang(*this));
   return Flang.get();
+#else
+  llvm_unreachable("Flang is not supported by this toolchain");
+#endif
 }
 
 Tool *ToolChain::buildAssembler() const {
@@ -1000,6 +1004,7 @@ void ToolChain::AddCCKextLibArgs(const ArgList &Args,
   CmdArgs.push_back("-lcc_kext");
 }
 
+#ifdef ENABLE_CLASSIC_FLANG
 void ToolChain::AddFortranStdlibLibArgs(const ArgList &Args,
                                     ArgStringList &CmdArgs) const {
  bool staticFlangLibs = false;
@@ -1038,6 +1043,7 @@ void ToolChain::AddFortranStdlibLibArgs(const ArgList &Args,
   // Allways link Fortran executables with Pthreads
   CmdArgs.push_back("-lpthread");
 }
+#endif
 
 bool ToolChain::isFastMathRuntimeAvailable(const ArgList &Args,
                                            std::string &Path) const {
