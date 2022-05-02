@@ -632,6 +632,7 @@ std::string Linux::getDynamicLinker(const ArgList &Args) const {
   return "/" + LibDir + "/" + Loader;
 }
 
+#ifdef ENABLE_CLASSIC_FLANG
 /// Convert path list to Fortran frontend argument
 static void AddFlangSysIncludeArg(const ArgList &DriverArgs,
                                   ArgStringList &Flang1Args,
@@ -819,6 +820,7 @@ void Linux::AddFlangSystemIncludeArgs(const ArgList &DriverArgs,
 
   AddFlangSysIncludeArg(DriverArgs, Flang1Args, IncludePathList);
 }
+#endif
 
 void Linux::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
                                       ArgStringList &CC1Args) const {

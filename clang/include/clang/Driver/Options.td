@@ -6972,11 +6972,11 @@ def fconvert_EQ : Joined<["-"], "fconvert=">, Group<f_Group>,
   HelpText<"Set endian conversion of data for unformatted files">;
 def fdefault_double_8 : Flag<["-"],"fdefault-double-8">, Group<f_Group>,
   HelpText<"Set the default double precision kind to an 8 byte wide type">;
+def fdefault_integer_8 : Flag<["-"],"fdefault-integer-8">, Group<f_Group>,
+  HelpText<"Set the default integer and logical kind to an 8 byte wide type">;
 #ifdef ENABLE_CLASSIC_FLANG
 def fno_default_integer_8 : Flag<["-"], "fno-default-integer-8">, Group<f_Group>;
 #endif
-def fdefault_integer_8 : Flag<["-"],"fdefault-integer-8">, Group<f_Group>,
-  HelpText<"Set the default integer and logical kind to an 8 byte wide type">;
 def fdefault_real_8 : Flag<["-"],"fdefault-real-8">, Group<f_Group>,
   HelpText<"Set the default real kind to an 8 byte wide type">;
 #ifdef ENABLE_CLASSIC_FLANG
@@ -9180,8 +9180,8 @@ def wasm_opt : Flag<["--"], "wasm-opt">,
   MarshallingInfoNegativeFlag<LangOpts<"NoWasmOpt">>;
 
 #ifdef ENABLE_CLASSIC_FLANG
-// gfortran options that we recognize in the driver and pass along when
-// invoking GCC to compile Fortran code.
+// Classic Flang options that we recognize in the driver and pass along when
+// invoking flang1/flang2 to compile Fortran code.
 def flang_rt_Group : OptionGroup<"Flang runtime library Group">;
 def pgi_fortran_Group : OptionGroup<"PGI Fortran compatibility Group">,
   Flags<[HelpHidden]>;

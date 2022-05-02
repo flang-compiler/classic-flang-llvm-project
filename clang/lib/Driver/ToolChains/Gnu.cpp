@@ -548,6 +548,7 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   // The profile runtime also needs access to system libraries.
   getToolChain().addProfileRTLibs(Args, CmdArgs);
 
+#ifdef ENABLE_CLASSIC_FLANG
   // Add Fortran runtime libraries
   if (needFortranLibs(D, Args)) {
     ToolChain.AddFortranStdlibLibArgs(Args, CmdArgs);
@@ -557,6 +558,7 @@ void tools::gnutools::Linker::ConstructJob(Compilation &C, const JobAction &JA,
       Arg->claim();
     }
   }
+#endif
 
   if (D.CCCIsCXX() &&
       !Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
