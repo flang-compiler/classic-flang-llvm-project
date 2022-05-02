@@ -1035,6 +1035,7 @@ VersionTuple CudaToolChain::computeMSVCVersion(const Driver *D,
   return HostTC.computeMSVCVersion(D, Args);
 }
 
+#ifdef ENABLE_CLASSIC_FLANG
 static void AddFlangSysIncludeArg(const ArgList &DriverArgs,
                                   ArgStringList &Flang1Args,
                                   ToolChain::path_list IncludePathList) {
@@ -1067,3 +1068,4 @@ void CudaToolChain::AddFlangSystemIncludeArgs(const llvm::opt::ArgList &DriverAr
   IncludePathList.push_back(P.c_str());
   AddFlangSysIncludeArg(DriverArgs, Flang1Args, IncludePathList);
 }
+#endif

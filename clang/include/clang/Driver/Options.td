@@ -591,7 +591,7 @@ class InternalDriverOpt : Group<internal_driver_Group>,
 def driver_mode : Joined<["--"], "driver-mode=">, Group<internal_driver_Group>,
   Flags<[CoreOption, NoXarchOption, HelpHidden]>,
 #ifdef ENABLE_CLASSIC_FLANG
-  HelpText<"Set the driver mode to either 'gcc', 'g++', 'cpp', 'cl', or 'fortran'">;
+  HelpText<"Set the driver mode to one of: 'gcc', 'g++', 'cpp', 'cl', or 'flang'">;
 #else
   HelpText<"Set the driver mode to either 'gcc', 'g++', 'cpp', or 'cl'">;
 #endif
@@ -5409,11 +5409,11 @@ def fopenacc : Flag<["-"], "fopenacc">, Group<f_Group>,
   HelpText<"Enable OpenACC">;
 def fdefault_double_8 : Flag<["-"],"fdefault-double-8">, Group<f_Group>,
   HelpText<"Set the default double precision kind to an 8 byte wide type">;
+def fdefault_integer_8 : Flag<["-"],"fdefault-integer-8">, Group<f_Group>,
+  HelpText<"Set the default integer and logical kind to an 8 byte wide type">;
 #ifdef ENABLE_CLASSIC_FLANG
 def fno_default_integer_8 : Flag<["-"], "fno-default-integer-8">, Group<f_Group>;
 #endif
-def fdefault_integer_8 : Flag<["-"],"fdefault-integer-8">, Group<f_Group>,
-  HelpText<"Set the default integer and logical kind to an 8 byte wide type">;
 def fdefault_real_8 : Flag<["-"],"fdefault-real-8">, Group<f_Group>,
   HelpText<"Set the default real kind to an 8 byte wide type">;
 #ifdef ENABLE_CLASSIC_FLANG
@@ -5421,6 +5421,7 @@ def fno_default_real_8 : Flag<["-"], "fno-default-real-8">, Group<f_Group>;
 #endif
 def flarge_sizes : Flag<["-"],"flarge-sizes">, Group<f_Group>,
   HelpText<"Use INTEGER(KIND=8) for the result type in size-related intrinsics">;
+
 def falternative_parameter_statement : Flag<["-"], "falternative-parameter-statement">, Group<f_Group>,
   HelpText<"Enable the old style PARAMETER statement">;
 def fintrinsic_modules_path : Separate<["-"], "fintrinsic-modules-path">,  Group<f_Group>, MetaVarName<"<dir>">,
@@ -7494,8 +7495,8 @@ def enable_16bit_types : DXCFlag<"enable-16bit-types">, Alias<fnative_half_type>
            "Available in HLSL 2018 and shader model 6.2.">;
 
 #ifdef ENABLE_CLASSIC_FLANG
-// gfortran options that we recognize in the driver and pass along when
-// invoking GCC to compile Fortran code.
+// Classic Flang options that we recognize in the driver and pass along when
+// invoking flang1/flang2 to compile Fortran code.
 def flang_rt_Group : OptionGroup<"Flang runtime library Group">;
 def pgi_fortran_Group : OptionGroup<"PGI Fortran compatibility Group">,
   Flags<[HelpHidden]>;
