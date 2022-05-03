@@ -79,8 +79,8 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   // Check file type sanity
   assert(types::isAcceptedByFlang(InputType) && "Can only accept Fortran");
 
-  if (Args.hasArg(options::OPT_fsyntax_only)) {
-    // For -fsyntax-only produce temp files only
+  if (Args.hasArg(options::OPT_fsyntax_only, options::OPT_E)) {
+    // For -fsyntax-only and -E produce temp files only
     Stem = C.getDriver().GetTemporaryPath("", "");
   } else {
     OutFile = Output.getFilename();
