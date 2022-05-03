@@ -337,14 +337,7 @@ phases::ID Driver::getFinalPhase(const DerivedArgList &DAL,
       (PhaseArg = DAL.getLastArg(options::OPT_M, options::OPT_MM)) ||
       (PhaseArg = DAL.getLastArg(options::OPT__SLASH_P)) ||
       CCGenDiagnostics) {
-#ifdef ENABLE_CLASSIC_FLANG
-    if (IsFlangMode())
-      FinalPhase = phases::Compile;
-    else
-      FinalPhase = phases::Preprocess;
-#else
     FinalPhase = phases::Preprocess;
-#endif
 
     // --precompile only runs up to precompilation.
     // Options that cause the output of C++20 compiled module interfaces or
@@ -2497,7 +2490,11 @@ void Driver::BuildInputs(const ToolChain &TC, DerivedArgList &Args,
         if (memcmp(Value, "-", 2) == 0) {
           if (IsFlangMode()) {
 #ifdef ENABLE_CLASSIC_FLANG
-            Ty = types::TY_C;
+          // If running with -E, treat as needing preprocessing
+          if (!Args.hasArgNoClaim(options::OPT_E))
+            Ty = types::TY_PP_F_FreeForm;
+          else
+            Ty = types::TY_F_FreeForm;
 #else
             Ty = types::TY_Fortran;
 #endif
@@ -2522,6 +2519,16 @@ void Driver::BuildInputs(const ToolChain &TC, DerivedArgList &Args,
           // idea of what .s is.
           if (const char *Ext = strrchr(Value, '.'))
             Ty = TC.LookupTypeForExtension(Ext + 1);
+#ifdef ENABLE_CLASSIC_FLANG
+            // If called with -E, treat the inputs as needing preprocessing
+            // regardless of extension
+            if (IsFlangMode() && Args.hasArgNoClaim(options::OPT_E)) {
+              if (Ty == types::TY_PP_F_FreeForm)
+                Ty = types::TY_F_FreeForm;
+              else if (Ty == types::TY_PP_F_FixedForm)
+                Ty = types::TY_F_FixedForm;
+            }
+#endif
 
           if (Ty == types::TY_INVALID) {
             if (IsCLMode() && (Args.hasArgNoClaim(options::OPT_E) || CCGenDiagnostics))
