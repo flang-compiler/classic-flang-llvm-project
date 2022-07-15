@@ -66,7 +66,7 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   ArgStringList LowerCmdArgs;
   SmallString<256> Stem;
   std::string OutFile;
-  bool NeedIEEE = false;
+  bool NeedIEEE = true;
   bool NeedFastMath = false;
   bool NeedRelaxedMath = false;
 
@@ -584,7 +584,7 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     LowerCmdArgs.push_back("-x");
     LowerCmdArgs.push_back("216");
     LowerCmdArgs.push_back("1");
-    // Lower: -ieee 0
+    // Common: -ieee 0
     CommonCmdArgs.push_back("-ieee");
     CommonCmdArgs.push_back("0");
   } else if (NeedIEEE) {
@@ -612,7 +612,7 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     LowerCmdArgs.push_back("-y");
     LowerCmdArgs.push_back("216");
     LowerCmdArgs.push_back("1");
-    // Lower: -ieee 1
+    // Common: -ieee 1
     CommonCmdArgs.push_back("-ieee");
     CommonCmdArgs.push_back("1");
   } else if (NeedRelaxedMath) {
@@ -624,11 +624,11 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     LowerCmdArgs.push_back("-y");
     LowerCmdArgs.push_back("216");
     LowerCmdArgs.push_back("1");
-    // Lower: -ieee 0
+    // Common: -ieee 0
     CommonCmdArgs.push_back("-ieee");
     CommonCmdArgs.push_back("0");
   } else {
-    // Lower: -ieee 0
+    // Common: -ieee 0
     CommonCmdArgs.push_back("-ieee");
     CommonCmdArgs.push_back("0");
   }
