@@ -57,7 +57,7 @@ jobs:
           ${{ matrix.cpp }}-${{ matrix.version }} --version
 
       - name: Build and install llvm
-        run: ./build-llvm-project.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} -b /usr/bin/${{ matrix.cpp }}-${{ matrix.version }} -n $(nproc) -c -i -s
+        run: ./build-llvm-project.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} -b /usr/bin/${{ matrix.cpp }}-${{ matrix.version }} -n $(nproc) -c -i -s -v
 
       - name: Checkout flang
         run: |

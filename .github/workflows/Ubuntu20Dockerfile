@@ -34,7 +34,7 @@ RUN apt-get install -y software-properties-common && \
     apt-get install -f -y llvm-10 clang-10 && \
     apt-get install -f -y llvm-11 clang-11
 
-# Install the tools for release_13x
+# Install the tools for release_13x and newer
 RUN apt --fix-missing update && \
     apt install -y build-essential manpages-dev \
     libssl-dev zlib1g-dev \
@@ -51,10 +51,11 @@ RUN ln -s /usr/bin/ninja-build /usr/local/bin/ninja
 
 RUN mkdir /home/github/
 
+ARG BRANCH_NAME
 RUN mkdir /home/root && cd home/root && \
-    git clone --depth 1 --single-branch --branch release_13x https://github.com/flang-compiler/classic-flang-llvm-project.git classic-flang-llvm-project && \
+    git clone --depth 1 --single-branch --branch $BRANCH_NAME https://github.com/flang-compiler/classic-flang-llvm-project.git classic-flang-llvm-project && \
     cd classic-flang-llvm-project && \
-    ./build-llvm-project.sh -t AArch64 -p /home/github/usr/local -n `nproc --ignore=1` -a /usr/bin/gcc-10 -b /usr/bin/g++-10 -i
+    ./build-llvm-project.sh -t AArch64 -p /home/github/usr/local -n `nproc --ignore=1` -a /usr/bin/gcc-10 -b /usr/bin/g++-10 -i -v
 
 RUN useradd github && \
     chown -R github:github /home/github
