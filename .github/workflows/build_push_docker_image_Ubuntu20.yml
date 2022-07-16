@@ -47,6 +47,8 @@ jobs:
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           tags: ghcr.io/${{ github.repository_owner }}/ubuntu20-flang-${{ steps.extract_branch.outputs.branch }}:latest
           platforms: linux/arm64
+          build-args: |
+            BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
 
       # This ugly bit is necessary if you don't want your cache to grow forever
       # till it hits GitHub's limit of 5GB.
