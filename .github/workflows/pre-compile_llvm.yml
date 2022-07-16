@@ -65,7 +65,8 @@ jobs:
             -p /usr/local \
             -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} \
             -b /usr/bin/${{env.cpp}}-${{ matrix.version }} \
-            -n $(nproc)
+            -n $(nproc) \
+            -v
           # Archive the source + build directories for future installation
           cd ..
           tar -zcf llvm_build.tar.gz classic-flang-llvm-project
