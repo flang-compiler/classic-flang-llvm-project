@@ -12,6 +12,7 @@
 #include "llvm/ADT/BitVector.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/Optional.h"
+#include "llvm/ADT/Triple.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Module.h"
@@ -20,7 +21,6 @@
 
 namespace llvm {
 template <typename T> class ArrayRef;
-class Triple;
 
 /// Describes a possible vectorization of a function.
 /// Function 'VectorFnName' is equivalent to 'ScalarFnName' vectorized
@@ -77,6 +77,8 @@ class TargetLibraryInfoImpl {
   /// F, regardless of whether the function is available.
   bool isValidProtoForLibFunc(const FunctionType &FTy, LibFunc F,
                               const DataLayout *DL) const;
+
+  Triple T;
 
 public:
   /// List of known vector-functions libraries.
