@@ -22,7 +22,6 @@ namespace llvm {
 template <typename T> class ArrayRef;
 class Function;
 class Module;
-class Triple;
 
 /// Provides info so a possible vectorization of a function can be
 /// computed. Function 'VectorFnName' is equivalent to 'ScalarFnName'
@@ -112,6 +111,8 @@ class TargetLibraryInfoImpl {
   /// F, regardless of whether the function is available.
   bool isValidProtoForLibFunc(const FunctionType &FTy, LibFunc F,
                               const Module &M) const;
+
+  Triple T;
 
 public:
   /// List of known vector-functions libraries.
