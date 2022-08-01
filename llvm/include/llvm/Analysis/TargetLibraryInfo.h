@@ -112,6 +112,8 @@ class TargetLibraryInfoImpl {
   bool isValidProtoForLibFunc(const FunctionType &FTy, LibFunc F,
                               const Module &M) const;
 
+  Triple T;
+
 public:
   /// List of known vector-functions libraries.
   ///
