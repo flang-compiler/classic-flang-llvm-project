@@ -633,14 +633,14 @@ static void initialize(TargetLibraryInfoImpl &TLI, const Triple &T,
   TLI.addVectorizableFunctionsFromVecLib(ClVectorLibrary);
 }
 
-TargetLibraryInfoImpl::TargetLibraryInfoImpl() {
+TargetLibraryInfoImpl::TargetLibraryInfoImpl() : T(Triple()) {
   // Default to everything being available.
   memset(AvailableArray, -1, sizeof(AvailableArray));
 
-  initialize(*this, Triple(), StandardNames);
+  initialize(*this, T, StandardNames);
 }
 
-TargetLibraryInfoImpl::TargetLibraryInfoImpl(const Triple &T) {
+TargetLibraryInfoImpl::TargetLibraryInfoImpl(const Triple &T) : T(T) {
   // Default to everything being available.
   memset(AvailableArray, -1, sizeof(AvailableArray));
 
@@ -651,7 +651,7 @@ TargetLibraryInfoImpl::TargetLibraryInfoImpl(const TargetLibraryInfoImpl &TLI)
     : CustomNames(TLI.CustomNames), ShouldExtI32Param(TLI.ShouldExtI32Param),
       ShouldExtI32Return(TLI.ShouldExtI32Return),
       ShouldSignExtI32Param(TLI.ShouldSignExtI32Param),
-      SizeOfInt(TLI.SizeOfInt) {
+      SizeOfInt(TLI.SizeOfInt), T(TLI.T) {
   memcpy(AvailableArray, TLI.AvailableArray, sizeof(AvailableArray));
   VectorDescs = TLI.VectorDescs;
   ScalarDescs = TLI.ScalarDescs;
@@ -662,7 +662,7 @@ TargetLibraryInfoImpl::TargetLibraryInfoImpl(TargetLibraryInfoImpl &&TLI)
       ShouldExtI32Param(TLI.ShouldExtI32Param),
       ShouldExtI32Return(TLI.ShouldExtI32Return),
       ShouldSignExtI32Param(TLI.ShouldSignExtI32Param),
-      SizeOfInt(TLI.SizeOfInt) {
+      SizeOfInt(TLI.SizeOfInt), T(TLI.T) {
   std::move(std::begin(TLI.AvailableArray), std::end(TLI.AvailableArray),
             AvailableArray);
   VectorDescs = TLI.VectorDescs;
@@ -675,6 +675,7 @@ TargetLibraryInfoImpl &TargetLibraryInfoImpl::operator=(const TargetLibraryInfoI
   ShouldExtI32Return = TLI.ShouldExtI32Return;
   ShouldSignExtI32Param = TLI.ShouldSignExtI32Param;
   SizeOfInt = TLI.SizeOfInt;
+  T = TLI.T;
   memcpy(AvailableArray, TLI.AvailableArray, sizeof(AvailableArray));
   return *this;
 }
@@ -685,6 +686,7 @@ TargetLibraryInfoImpl &TargetLibraryInfoImpl::operator=(TargetLibraryInfoImpl &&
   ShouldExtI32Return = TLI.ShouldExtI32Return;
   ShouldSignExtI32Param = TLI.ShouldSignExtI32Param;
   SizeOfInt = TLI.SizeOfInt;
+  T = TLI.T;
   std::move(std::begin(TLI.AvailableArray), std::end(TLI.AvailableArray),
             AvailableArray);
   return *this;
@@ -1686,7 +1688,179 @@ void TargetLibraryInfoImpl::addVectorizableFunctionsFromVecLib(
   // Based on the size of vector registers available and the size of data, the
   // vector width should be chosen correctly.
   case PGMATH: {
-    const VecDesc VecFuncs[] = {
+    if (T.getArch() == Triple::aarch64) {
+      const VecDesc VecFuncs[] = {
+        {"__fd_sin_1", "__fd_sin_2", FIXED(2)},
+        {"__fs_sin_1", "__fs_sin_4", FIXED(4)},
+
+        {"__pd_sin_1", "__pd_sin_2", FIXED(2)},
+        {"__ps_sin_1", "__ps_sin_4", FIXED(4)},
+
+        {"__rd_sin_1", "__rd_sin_2", FIXED(2)},
+        {"__rs_sin_1", "__rs_sin_4", FIXED(4)},
+
+        {"__fd_cos_1", "__fd_cos_2", FIXED(2)},
+        {"__fs_cos_1", "__fs_cos_4", FIXED(4)},
+
+        {"__pd_cos_1", "__pd_cos_2", FIXED(2)},
+        {"__ps_cos_1", "__ps_cos_4", FIXED(4)},
+
+        {"__rd_cos_1", "__rd_cos_2", FIXED(2)},
+        {"__rs_cos_1", "__rs_cos_4", FIXED(4)},
+
+        {"__fd_sincos_1", "__fd_sincos_2", FIXED(2)},
+        {"__fs_sincos_1", "__fs_sincos_4", FIXED(4)},
+
+        {"__pd_sincos_1", "__pd_sincos_2", FIXED(2)},
+        {"__ps_sincos_1", "__ps_sincos_4", FIXED(4)},
+
+        {"__rd_sincos_1", "__rd_sincos_2", FIXED(2)},
+        {"__rs_sincos_1", "__rs_sincos_4", FIXED(4)},
+
+        {"__fd_tan_1", "__fd_tan_2", FIXED(2)},
+        {"__fs_tan_1", "__fs_tan_4", FIXED(4)},
+
+        {"__pd_tan_1", "__pd_tan_2", FIXED(2)},
+        {"__ps_tan_1", "__ps_tan_4", FIXED(4)},
+
+        {"__rd_tan_1", "__rd_tan_2", FIXED(2)},
+        {"__rs_tan_1", "__rs_tan_4", FIXED(4)},
+
+        {"__fd_sinh_1", "__fd_sinh_2", FIXED(2)},
+        {"__fs_sinh_1", "__fs_sinh_4", FIXED(4)},
+
+        {"__pd_sinh_1", "__pd_sinh_2", FIXED(2)},
+        {"__ps_sinh_1", "__ps_sinh_4", FIXED(4)},
+
+        {"__rd_sinh_1", "__rd_sinh_2", FIXED(2)},
+        {"__rs_sinh_1", "__rs_sinh_4", FIXED(4)},
+
+        {"__fd_cosh_1", "__fd_cosh_2", FIXED(2)},
+        {"__fs_cosh_1", "__fs_cosh_4", FIXED(4)},
+
+        {"__pd_cosh_1", "__pd_cosh_2", FIXED(2)},
+        {"__ps_cosh_1", "__ps_cosh_4", FIXED(4)},
+
+        {"__rd_cosh_1", "__rd_cosh_2", FIXED(2)},
+        {"__rs_cosh_1", "__rs_cosh_4", FIXED(4)},
+
+        {"__fd_tanh_1", "__fd_tanh_2", FIXED(2)},
+        {"__fs_tanh_1", "__fs_tanh_4", FIXED(4)},
+
+        {"__pd_tanh_1", "__pd_tanh_2", FIXED(2)},
+        {"__ps_tanh_1", "__ps_tanh_4", FIXED(4)},
+
+        {"__rd_tanh_1", "__rd_tanh_2", FIXED(2)},
+        {"__rs_tanh_1", "__rs_tanh_4", FIXED(4)},
+
+        {"__fd_asin_1", "__fd_asin_2", FIXED(2)},
+        {"__fs_asin_1", "__fs_asin_4", FIXED(4)},
+
+        {"__pd_asin_1", "__pd_asin_2", FIXED(2)},
+        {"__ps_asin_1", "__ps_asin_4", FIXED(4)},
+
+        {"__rd_asin_1", "__rd_asin_2", FIXED(2)},
+        {"__rs_asin_1", "__rs_asin_4", FIXED(4)},
+
+        {"__fd_acos_1", "__fd_acos_2", FIXED(2)},
+        {"__fs_acos_1", "__fs_acos_4", FIXED(4)},
+
+        {"__pd_acos_1", "__pd_acos_2", FIXED(2)},
+        {"__ps_acos_1", "__ps_acos_4", FIXED(4)},
+
+        {"__rd_acos_1", "__rd_acos_2", FIXED(2)},
+        {"__rs_acos_1", "__rs_acos_4", FIXED(4)},
+
+        {"__fd_atan_1", "__fd_atan_2", FIXED(2)},
+        {"__fs_atan_1", "__fs_atan_4", FIXED(4)},
+
+        {"__pd_atan_1", "__pd_atan_2", FIXED(2)},
+        {"__ps_atan_1", "__ps_atan_4", FIXED(4)},
+
+        {"__rd_atan_1", "__rd_atan_2", FIXED(2)},
+        {"__rs_atan_1", "__rs_atan_4", FIXED(4)},
+
+        {"__fd_atan2_1", "__fd_atan2_2", FIXED(2)},
+        {"__fs_atan2_1", "__fs_atan2_4", FIXED(4)},
+
+        {"__pd_atan2_1", "__pd_atan2_2", FIXED(2)},
+        {"__ps_atan2_1", "__ps_atan2_4", FIXED(4)},
+
+        {"__rd_atan2_1", "__rd_atan2_2", FIXED(2)},
+        {"__rs_atan2_1", "__rs_atan2_4", FIXED(4)},
+
+        {"__fd_pow_1", "__fd_pow_2", FIXED(2)},
+        {"__fs_pow_1", "__fs_pow_4", FIXED(4)},
+
+        {"__pd_pow_1", "__pd_pow_2", FIXED(2)},
+        {"__ps_pow_1", "__ps_pow_4", FIXED(4)},
+
+        {"__rd_pow_1", "__rd_pow_2", FIXED(2)},
+        {"__rs_pow_1", "__rs_pow_4", FIXED(4)},
+
+        {"__fs_powi_1", "__fs_powi_4", FIXED(4)},
+
+        {"__ps_powi_1", "__ps_powi_4", FIXED(4)},
+
+        {"__rs_powi_1", "__rs_powi_4", FIXED(4)},
+
+        {"__fd_powi1_1", "__fd_powi1_2", FIXED(2)},
+        {"__fs_powi1_1", "__fs_powi1_4", FIXED(4)},
+
+        {"__pd_powi1_1", "__pd_powi1_2", FIXED(2)},
+        {"__ps_powi1_1", "__ps_powi1_4", FIXED(4)},
+
+        {"__rd_powi1_1", "__rd_powi1_2", FIXED(2)},
+        {"__rs_powi1_1", "__rs_powi1_4", FIXED(4)},
+
+        {"__fd_powk_1", "__fd_powk_2", FIXED(2)},
+        {"__fs_powk_1", "__fs_powk_4", FIXED(4)},
+
+        {"__pd_powk_1", "__pd_powk_2", FIXED(2)},
+        {"__ps_powk_1", "__ps_powk_4", FIXED(4)},
+
+        {"__rd_powk_1", "__rd_powk_2", FIXED(2)},
+        {"__rs_powk_1", "__rs_powk_4", FIXED(4)},
+
+        {"__fd_powk1_1", "__fd_powk1_2", FIXED(2)},
+        {"__fs_powk1_1", "__fs_powk1_4", FIXED(4)},
+
+        {"__pd_powk1_1", "__pd_powk1_2", FIXED(2)},
+        {"__ps_powk1_1", "__ps_powk1_4", FIXED(4)},
+
+        {"__rd_powk1_1", "__rd_powk1_2", FIXED(2)},
+        {"__rs_powk1_1", "__rs_powk1_4", FIXED(4)},
+
+        {"__fd_log10_1", "__fd_log10_2", FIXED(2)},
+        {"__fs_log10_1", "__fs_log10_4", FIXED(4)},
+
+        {"__pd_log10_1", "__pd_log10_2", FIXED(2)},
+        {"__ps_log10_1", "__ps_log10_4", FIXED(4)},
+
+        {"__rd_log10_1", "__rd_log10_2", FIXED(2)},
+        {"__rs_log10_1", "__rs_log10_4", FIXED(4)},
+
+        {"__fd_log_1", "__fd_log_2", FIXED(2)},
+        {"__fs_log_1", "__fs_log_4", FIXED(4)},
+
+        {"__pd_log_1", "__pd_log_2", FIXED(2)},
+        {"__ps_log_1", "__ps_log_4", FIXED(4)},
+
+        {"__rd_log_1", "__rd_log_2", FIXED(2)},
+        {"__rs_log_1", "__rs_log_4", FIXED(4)},
+
+        {"__fd_exp_1", "__fd_exp_2", FIXED(2)},
+        {"__fs_exp_1", "__fs_exp_4", FIXED(4)},
+
+        {"__pd_exp_1", "__pd_exp_2", FIXED(2)},
+        {"__ps_exp_1", "__ps_exp_4", FIXED(4)},
+
+        {"__rd_exp_1", "__rd_exp_2", FIXED(2)},
+        {"__rs_exp_1", "__rs_exp_4", FIXED(4)}
+      };
+      addVectorizableFunctions(VecFuncs);
+    } else if (T.getArch() == Triple::x86_64) {
+      const VecDesc VecFuncs[] = {
         {"__fd_sin_1", "__fd_sin_2", FIXED(2)},
         {"__fd_sin_1", "__fd_sin_4", FIXED(4)},
         {"__fd_sin_1", "__fd_sin_8", FIXED(8)},
@@ -2126,8 +2300,9 @@ void TargetLibraryInfoImpl::addVectorizableFunctionsFromVecLib(
         {"__rs_exp_1", "__rs_exp_4", FIXED(4)},
         {"__rs_exp_1", "__rs_exp_8", FIXED(8)},
         {"__rs_exp_1", "__rs_exp_16", FIXED(16)}
-    };
-    addVectorizableFunctions(VecFuncs);
+      };
+      addVectorizableFunctions(VecFuncs);
+    }
     break;
   }
 
