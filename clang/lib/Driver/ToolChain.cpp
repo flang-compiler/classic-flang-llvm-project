@@ -1019,8 +1019,6 @@ void ToolChain::AddFortranStdlibLibArgs(const ArgList &Args,
   CmdArgs.push_back("-lpgmath");
   if (useOpenMP)
     CmdArgs.push_back("-lomp");
-  else
-    CmdArgs.push_back("-lompstub");
   if (staticFlangLibs)
     CmdArgs.push_back("-Bdynamic");
 
