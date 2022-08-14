@@ -1735,30 +1735,6 @@ void TargetLibraryInfoImpl::addVectorizableFunctionsFromVecLib(
         {"__rs_cos_1", "__rs_cos_8", FIXED(8)},
         {"__rs_cos_1", "__rs_cos_16", FIXED(16)},
 
-        {"__fd_sincos_1", "__fd_sincos_2", FIXED(2)},
-        {"__fd_sincos_1", "__fd_sincos_4", FIXED(4)},
-        {"__fd_sincos_1", "__fd_sincos_8", FIXED(8)},
-
-        {"__fs_sincos_1", "__fs_sincos_4", FIXED(4)},
-        {"__fs_sincos_1", "__fs_sincos_8", FIXED(8)},
-        {"__fs_sincos_1", "__fs_sincos_16", FIXED(16)},
-
-        {"__pd_sincos_1", "__pd_sincos_2", FIXED(2)},
-        {"__pd_sincos_1", "__pd_sincos_4", FIXED(4)},
-        {"__pd_sincos_1", "__pd_sincos_8", FIXED(8)},
-
-        {"__ps_sincos_1", "__ps_sincos_4", FIXED(4)},
-        {"__ps_sincos_1", "__ps_sincos_8", FIXED(8)},
-        {"__ps_sincos_1", "__ps_sincos_16", FIXED(16)},
-
-        {"__rd_sincos_1", "__rd_sincos_2", FIXED(2)},
-        {"__rd_sincos_1", "__rd_sincos_4", FIXED(4)},
-        {"__rd_sincos_1", "__rd_sincos_8", FIXED(8)},
-
-        {"__rs_sincos_1", "__rs_sincos_4", FIXED(4)},
-        {"__rs_sincos_1", "__rs_sincos_8", FIXED(8)},
-        {"__rs_sincos_1", "__rs_sincos_16", FIXED(16)},
-
         {"__fd_tan_1", "__fd_tan_2", FIXED(2)},
         {"__fd_tan_1", "__fd_tan_4", FIXED(4)},
         {"__fd_tan_1", "__fd_tan_8", FIXED(8)},
