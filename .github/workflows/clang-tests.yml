@@ -3,7 +3,6 @@ name: Clang Tests
 on:
   workflow_dispatch:
   push:
-    ignore-forks: true
     branches:
       - 'release/**'
     paths:
@@ -12,7 +11,6 @@ on:
       - '.github/workflows/llvm-project-tests.yml'
       - '!llvm/**'
   pull_request:
-    ignore-forks: true
     branches:
       - 'release/**'
     paths:
