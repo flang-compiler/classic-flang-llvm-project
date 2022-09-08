@@ -1,5 +1,10 @@
 // RUN: %libomp-compile-and-run | %sort-threads | FileCheck %s
 // REQUIRES: ompt
+
+// This test expects 4 teams of 1 thread each to be created, and fails
+// on CI runners with insufficient resources.
+// UNSUPPORTED: linux
+
 #include "callback.h"
 
 #define WORK_SIZE 64
