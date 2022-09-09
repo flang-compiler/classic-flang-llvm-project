@@ -3,13 +3,15 @@ name: Clang Tests
 on:
   push:
     branches:
-      - 'release/**'
+      - 'release_*x'
     paths:
       - 'clang/**'
       - '.github/workflows/clang-tests.yml'
       - '.github/workflows/llvm-project-tests.yml'
       - '!llvm/**'
   pull_request:
+    branches:
+      - 'release_*x'
     paths:
       - 'clang/**'
       - '.github/workflows/clang-tests.yml'
