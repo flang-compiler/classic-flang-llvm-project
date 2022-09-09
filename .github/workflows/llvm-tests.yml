@@ -3,11 +3,13 @@ name: LLVM Tests
 on:
   push:
     branches:
-      - 'release/**'
+      - 'release_*x'
     paths:
       - 'llvm/**'
       - '.github/workflows/llvm-tests.yml'
   pull_request:
+    branches:
+      - 'release_*x'
     paths:
       - 'llvm/**'
       - '.github/workflows/llvm-tests.yml'
