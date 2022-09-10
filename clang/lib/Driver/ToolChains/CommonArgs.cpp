@@ -822,7 +822,11 @@ bool tools::addOpenMPRuntime(ArgStringList &CmdArgs, const ToolChain &TC,
                              const ArgList &Args, bool ForceStaticHostRuntime,
                              bool IsOffloadingHost, bool GompNeedsRT) {
   if (!Args.hasFlag(options::OPT_fopenmp, options::OPT_fopenmp_EQ,
-                    options::OPT_fno_openmp, false))
+                    options::OPT_fno_openmp, false)
+#ifdef ENABLE_CLASSIC_FLANG
+      && !Args.hasFlag(options::OPT_mp, options::OPT_nomp, false)
+#endif
+     )
     return false;
 
   Driver::OpenMPRuntimeKind RTKind = TC.getDriver().getOpenMPRuntime(Args);
@@ -871,7 +875,16 @@ bool tools::addOpenMPRuntime(ArgStringList &CmdArgs, const ToolChain &TC,
 }
 
 void tools::addFortranRuntimeLibs(const ToolChain &TC,
+#ifdef ENABLE_CLASSIC_FLANG
+                                  const llvm::opt::ArgList &Args,
+#endif
                                   llvm::opt::ArgStringList &CmdArgs) {
+#ifdef ENABLE_CLASSIC_FLANG
+  if (needFortranLibs(TC.getDriver(), Args))
+    TC.AddFortranStdlibLibArgs(Args, CmdArgs);
+  else
+    Args.ClaimAllArgs(options::OPT_noFlangLibs);
+#else
   if (TC.getTriple().isKnownWindowsMSVCEnvironment()) {
     CmdArgs.push_back("Fortran_main.lib");
     CmdArgs.push_back("FortranRuntime.lib");
@@ -881,16 +894,19 @@ void tools::addFortranRuntimeLibs(const ToolChain &TC,
     CmdArgs.push_back("-lFortranRuntime");
     CmdArgs.push_back("-lFortranDecimal");
   }
+#endif
 }
 
 void tools::addFortranRuntimeLibraryPath(const ToolChain &TC,
                                          const llvm::opt::ArgList &Args,
                                          ArgStringList &CmdArgs) {
+#ifndef ENABLE_CLASSIC_FLANG
   // NOTE: Generating executables by Flang is considered an "experimental"
   // feature and hence this is guarded with a command line option.
   // TODO: Make this work unconditionally once Flang is mature enough.
   if (!Args.hasArg(options::OPT_flang_experimental_exec))
     return;
+#endif
 
   // Default to the <driver-path>/../lib directory. This works fine on the
   // platforms that we have tested so far. We will probably have to re-fine

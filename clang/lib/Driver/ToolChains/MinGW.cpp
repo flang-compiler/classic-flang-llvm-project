@@ -220,7 +220,11 @@ void tools::MinGW::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   if (C.getDriver().IsFlangMode()) {
     addFortranRuntimeLibraryPath(TC, Args, CmdArgs);
+#ifdef ENABLE_CLASSIC_FLANG
+    addFortranRuntimeLibs(TC, Args, CmdArgs);
+#else
     addFortranRuntimeLibs(TC, CmdArgs);
+#endif
   }
 
   // TODO: Add profile stuff here

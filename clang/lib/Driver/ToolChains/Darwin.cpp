@@ -639,7 +639,11 @@ void darwin::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   // to generate executables.
   if (getToolChain().getDriver().IsFlangMode()) {
     addFortranRuntimeLibraryPath(getToolChain(), Args, CmdArgs);
+#ifdef ENABLE_CLASSIC_FLANG
+    addFortranRuntimeLibs(getToolChain(), Args, CmdArgs);
+#else
     addFortranRuntimeLibs(getToolChain(), CmdArgs);
+#endif
   }
 
   if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs))
@@ -677,18 +681,6 @@ void darwin::Linker::ConstructJob(Compilation &C, const JobAction &JA,
 
   if (getToolChain().ShouldLinkCXXStdlib(Args))
     getToolChain().AddCXXStdlibLibArgs(Args, CmdArgs);
-
-#ifdef ENABLE_CLASSIC_FLANG
-  // Add Fortran runtime libraries
-  if (needFortranLibs(getToolChain().getDriver(), Args)) {
-    getToolChain().AddFortranStdlibLibArgs(Args, CmdArgs);
-  } else {
-    // Claim "no Flang libraries" arguments if any
-    for (auto Arg : Args.filtered(options::OPT_noFlangLibs)) {
-      Arg->claim();
-    }
-  }
-#endif
 
   bool NoStdOrDefaultLibs =
       Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs);
