@@ -1435,7 +1435,11 @@ bool tools::addOpenMPRuntime(const Compilation &C, ArgStringList &CmdArgs,
                              bool ForceStaticHostRuntime, bool IsOffloadingHost,
                              bool GompNeedsRT) {
   if (!Args.hasFlag(options::OPT_fopenmp, options::OPT_fopenmp_EQ,
-                    options::OPT_fno_openmp, false)) {
+                    options::OPT_fno_openmp, false)
+#ifdef ENABLE_CLASSIC_FLANG
+      && !Args.hasFlag(options::OPT_mp, options::OPT_nomp, false)
+#endif
+    ) {
     // We need libomptarget (liboffload) if it's the choosen offloading runtime.
     if (Args.hasFlag(options::OPT_foffload_via_llvm,
                      options::OPT_fno_offload_via_llvm, false))
