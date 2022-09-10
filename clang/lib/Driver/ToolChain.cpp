@@ -808,6 +808,12 @@ const char *ToolChain::getCompilerRTArgString(const llvm::opt::ArgList &Args,
 /// Add Fortran runtime libs
 void ToolChain::addFortranRuntimeLibs(const ArgList &Args,
                                       llvm::opt::ArgStringList &CmdArgs) const {
+#ifdef ENABLE_CLASSIC_FLANG
+  if (needFortranLibs(getDriver(), Args))
+    AddFortranStdlibLibArgs(Args, CmdArgs);
+  else
+    Args.ClaimAllArgs(options::OPT_noFlangLibs);
+#else
   // Link flang_rt.runtime
   // These are handled earlier on Windows by telling the frontend driver to
   // add the correct libraries to link against as dependents in the object
@@ -840,6 +846,7 @@ void ToolChain::addFortranRuntimeLibs(const ArgList &Args,
     if (OMPRuntime == Driver::OMPRT_OMP && RuntimeLib == ToolChain::RLT_Libgcc)
       CmdArgs.push_back("-latomic");
   }
+#endif
 }
 
 void ToolChain::addFortranRuntimeLibraryPath(const llvm::opt::ArgList &Args,
@@ -1548,42 +1555,26 @@ void ToolChain::AddCCKextLibArgs(const ArgList &Args,
 
 #ifdef ENABLE_CLASSIC_FLANG
 void ToolChain::AddFortranStdlibLibArgs(const ArgList &Args,
-                                    ArgStringList &CmdArgs) const {
- bool staticFlangLibs = false;
- bool useOpenMP = false;
-
+                                        ArgStringList &CmdArgs) const {
+  bool StaticFlangLibs = false;
   if (Args.hasArg(options::OPT_staticFlangLibs)) {
-    for (auto *A: Args.filtered(options::OPT_staticFlangLibs)) {
-      A->claim();
-      staticFlangLibs = true;
-    }
+    StaticFlangLibs = true;
+    Args.ClaimAllArgs(options::OPT_staticFlangLibs);
   }
 
-  Arg *A = Args.getLastArg(options::OPT_mp, options::OPT_nomp,
-                           options::OPT_fopenmp, options::OPT_fno_openmp);
-  if (A &&
-      (A->getOption().matches(options::OPT_mp) ||
-       A->getOption().matches(options::OPT_fopenmp))) {
-      useOpenMP = true;
-  }
-
-  if (staticFlangLibs)
+  if (StaticFlangLibs && !Args.hasArg(options::OPT_static))
     CmdArgs.push_back("-Bstatic");
   CmdArgs.push_back("-lflang");
   CmdArgs.push_back("-lflangrti");
   CmdArgs.push_back("-lpgmath");
-  if (useOpenMP)
-    CmdArgs.push_back("-lomp");
-  if (staticFlangLibs)
+  if (StaticFlangLibs && !Args.hasArg(options::OPT_static))
     CmdArgs.push_back("-Bdynamic");
 
-  CmdArgs.push_back("-lm");
+  // Always link Fortran executables with pthreads.
+  CmdArgs.push_back("-lpthread");
 
   if (!Triple.isOSDarwin())
     CmdArgs.push_back("-lrt");
-
-  // Allways link Fortran executables with Pthreads
-  CmdArgs.push_back("-lpthread");
 }
 #endif
 

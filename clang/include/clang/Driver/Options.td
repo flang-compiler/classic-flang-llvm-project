@@ -7293,6 +7293,12 @@ def fdo_concurrent_to_openmp_EQ : Joined<["-"], "fdo-concurrent-to-openmp=">,
 def J : JoinedOrSeparate<["-"], "J">,
   Flags<[RenderJoined]>,
   Group<gfortran_Group>;
+
+let Visibility = [FlangOption] in {
+def no_fortran_main : Flag<["-"], "fno-fortran-main">,
+  Visibility<[FlangOption]>, Group<f_Group>,
+  HelpText<"Do not include Fortran_main.a (provided by Flang) when linking">;
+} // let Visibility = [ FlangOption ]
 #else
 def J : JoinedOrSeparate<["-"], "J">,
   Flags<[RenderJoined]>, Visibility<[FlangOption, FC1Option]>,
