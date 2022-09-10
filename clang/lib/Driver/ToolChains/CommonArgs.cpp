@@ -1182,7 +1182,11 @@ bool tools::addOpenMPRuntime(ArgStringList &CmdArgs, const ToolChain &TC,
                              const ArgList &Args, bool ForceStaticHostRuntime,
                              bool IsOffloadingHost, bool GompNeedsRT) {
   if (!Args.hasFlag(options::OPT_fopenmp, options::OPT_fopenmp_EQ,
-                    options::OPT_fno_openmp, false))
+                    options::OPT_fno_openmp, false)
+#ifdef ENABLE_CLASSIC_FLANG
+      && !Args.hasFlag(options::OPT_mp, options::OPT_nomp, false)
+#endif
+     )
     return false;
 
   Driver::OpenMPRuntimeKind RTKind = TC.getDriver().getOpenMPRuntime(Args);
@@ -1334,6 +1338,12 @@ static void addFortranMain(const ToolChain &TC, const ArgList &Args,
 /// Add Fortran runtime libs
 void tools::addFortranRuntimeLibs(const ToolChain &TC, const ArgList &Args,
                                   llvm::opt::ArgStringList &CmdArgs) {
+#ifdef ENABLE_CLASSIC_FLANG
+  if (needFortranLibs(TC.getDriver(), Args))
+    TC.AddFortranStdlibLibArgs(Args, CmdArgs);
+  else
+    Args.ClaimAllArgs(options::OPT_noFlangLibs);
+#else
   // 1. Link FortranMain
   // FortranMain depends on FortranRuntime, so needs to be listed first. If
   // -fno-fortran-main has been passed, skip linking Fortran_main.a
@@ -1348,6 +1358,7 @@ void tools::addFortranRuntimeLibs(const ToolChain &TC, const ArgList &Args,
     CmdArgs.push_back("-lFortranRuntime");
     CmdArgs.push_back("-lFortranDecimal");
   }
+#endif
 }
 
 void tools::addFortranRuntimeLibraryPath(const ToolChain &TC,
