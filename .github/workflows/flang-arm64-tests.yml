@@ -1,0 +1,70 @@
+name: Build and test Flang
+
+on:
+  pull_request:
+    branches:
+      - 'release_*x'
+
+jobs:
+  build:
+    runs-on: self-hosted
+    env:
+      build_path: /home/github
+      install_prefix: /home/github/usr/local
+    container:
+      image: ghcr.io/${{ github.repository_owner}}/ubuntu20-flang-${{ github.base_ref }}:latest
+      credentials:
+        username: github
+    strategy:
+      matrix:
+        target: [AArch64]
+        cc: [clang]
+        cpp: [clang++]
+        version: [10, 11]
+        include:
+          - target: AArch64
+            cc: gcc
+            cpp: g++
+            version: 10
+
+    steps:
+      - name: Check tools
+        run: |
+          git --version
+          cmake --version
+          make --version
+          ${{ matrix.cc }}-${{ matrix.version }} --version
+          ${{ matrix.cpp }}-${{ matrix.version }} --version
+
+      - name: Manual checkout to build in user's home dir (pull_request)
+        run: |
+          cd ${{ env.build_path }}
+          git clone https://github.com/flang-compiler/classic-flang-llvm-project.git
+          cd classic-flang-llvm-project
+          git fetch origin ${{github.ref}}:pr_branch
+          git checkout pr_branch
+
+      - name: Build and install llvm
+        run: |
+          cd ${{ env.build_path }}/classic-flang-llvm-project
+          ./build-llvm-project.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} -b /usr/bin/${{ matrix.cpp }}-${{ matrix.version }} -n $(nproc) -i -v
+
+      - name: Checkout flang
+        run: |
+          cd ${{ env.build_path }}
+          git clone --depth 1 --single-branch --branch master https://github.com/flang-compiler/flang.git
+
+      - name: Build and install libpgmath & flang
+        run: |
+          cd ${{ env.build_path }}/flang
+          ./build-flang.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -n $(nproc)
+
+      - name: Copy llvm-lit
+        run: |
+          cd ${{ env.build_path }}/flang
+          cp ${{ env.build_path }}/classic-flang-llvm-project/build/bin/llvm-lit build/bin/.
+
+      - name: Test flang
+        run: |
+          cd ${{ env.build_path }}/flang/build
+          make check-all
