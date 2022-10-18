@@ -1,0 +1,49 @@
+name: Pre-compile llvm ARM64
+
+on:
+  workflow_dispatch:
+    inputs:
+      initialBuild:
+        description: "True if creating an initial Docker image for this branch"
+        required: true
+        type: boolean
+  push:
+    branches:
+      - 'release_*x'
+    paths-include:
+      - '**/.github/workflows/build_push_docker_image_Ubuntu20.yml'
+      - '**/.github/workflows/Ubuntu20Dockerfile.yml'
+
+jobs:
+  docker:
+    runs-on: self-hosted
+    steps:
+      - name: Extract branch name
+        run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
+        id: extract_branch
+
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Log in
+        uses: docker/login-action@v1
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          file: .github/workflows/Ubuntu20Dockerfile
+          push: true
+          no-cache: true
+          context: .github/workflows
+          tags: ghcr.io/${{ github.repository_owner }}/ubuntu20-flang-${{ steps.extract_branch.outputs.branch }}:latest
+          platforms: linux/arm64
+          build-args: |
+            BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
+            INITIAL_BUILD=${{ inputs.initialBuild }}
