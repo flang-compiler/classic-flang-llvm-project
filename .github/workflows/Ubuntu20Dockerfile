@@ -1,0 +1,65 @@
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/London
+RUN apt-get update && \
+    apt-get upgrade -y && \
+    apt-get install -y \
+      curl \
+      gcc \
+      g++ \
+      make \
+      htop \
+      jq \
+      ninja-build \
+      tmux \
+      git \
+      wget \
+      patch \
+      python3-minimal \
+      python-is-python3 \
+      libdata-dumper-simple-perl \
+      unzip
+
+RUN apt-get install -y software-properties-common && \
+    apt-get update && \
+    add-apt-repository ppa:ubuntu-toolchain-r/test && \
+    apt-get install -f -y gcc-9 g++-9 && \
+    apt-get install -f -y gcc-10 g++-10 && \
+    echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main' | tee -a /etc/apt/sources.list.d/llvm.list && \
+    echo 'deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main' | tee -a /etc/apt/sources.list.d/llvm.list && \
+    wget -q -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
+    apt-get update && \
+    apt-get install -f -y llvm-9 clang-9 && \
+    apt-get install -f -y llvm-10 clang-10 && \
+    apt-get install -f -y llvm-11 clang-11
+
+# Install the tools for release_13x and newer
+RUN apt --fix-missing update && \
+    apt install -y build-essential manpages-dev \
+    libssl-dev zlib1g-dev \
+    libbz2-dev libreadline-dev libsqlite3-dev libncurses5-dev && \
+    apt install -y python3-distutils python3-psutil \
+    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
+
+RUN cd /opt && \
+    wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0-linux-aarch64.sh && \
+    /bin/sh cmake-3.20.0-linux-aarch64.sh --skip-license --include-subdir && \
+    ln -s /opt/cmake-3.20.0-linux-aarch64/bin/* /usr/local/bin
+
+RUN ln -s /usr/bin/ninja-build /usr/local/bin/ninja
+
+RUN mkdir /home/github/
+
+ARG BRANCH_NAME
+ARG INITIAL_BUILD
+RUN if [ "$INITIAL_BUILD" != "true" ]; then \
+    mkdir /home/root && cd home/root && \
+    git clone --depth 1 --single-branch --branch $BRANCH_NAME https://github.com/flang-compiler/classic-flang-llvm-project.git classic-flang-llvm-project && \
+    cd classic-flang-llvm-project && \
+    ./build-llvm-project.sh -t AArch64 -p /home/github/usr/local -n `nproc --ignore=1` -a /usr/bin/gcc-10 -b /usr/bin/g++-10 -i -v; \
+    fi
+
+RUN useradd github && \
+    chown -R github:github /home/github
+USER github
