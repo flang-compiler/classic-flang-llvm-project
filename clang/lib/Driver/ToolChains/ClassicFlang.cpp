@@ -1027,37 +1027,50 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   }
 
   // Add vscale range
-  unsigned vscaleMin = 1U;
-  unsigned vscaleMax = 16U;
-  bool hasVscaleRange = false;
+  unsigned vscaleMin = 0;
+  unsigned vscaleMax = 0;
+  bool hasSVE = false;
   if (Arg *A = Args.getLastArg(options::OPT_msve_vector_bits_EQ)) {
     StringRef Val = A->getValue();
-
-    if (Val.equals("scalable"))
-      hasVscaleRange = true;
-    else {
-      unsigned bits = (std::stoul(Val.str()) >> 7U);
-
-      if ((bits < vscaleMin) || (bits > vscaleMax)) {
-        D.Diag(diag::warn_drv_clang_unsupported) << A->getAsString(Args);
-        hasVscaleRange = false;
-      } else {
-        vscaleMin = vscaleMax = bits;
-        hasVscaleRange = true;
+    if (Val.equals("128") || Val.equals("256") || Val.equals("512") ||
+        Val.equals("1024") || Val.equals("2048") || Val.equals("128+") ||
+        Val.equals("256+") || Val.equals("512+") || Val.equals("1024+") ||
+        Val.equals("2048+")) {
+      unsigned Bits = 0;
+      if (Val.endswith("+"))
+        Val = Val.substr(0, Val.size() - 1);
+      else {
+        bool Invalid = Val.getAsInteger(10, Bits); (void)Invalid;
+        assert(!Invalid && "Failed to parse value");
+        vscaleMax = Bits / 128;
       }
-    }
+ 
+      bool Invalid = Val.getAsInteger(10, Bits); (void)Invalid;
+      assert(!Invalid && "Failed to parse value");
+      vscaleMin = Bits / 128;
+    } else if (!Val.equals("scalable"))
+      getToolChain().getDriver().Diag(diag::warn_drv_clang_unsupported)
+          << A->getOption().getName() << Val;
   }
   for (auto Feature : unifyTargetFeatures(Features)) {
     if (Feature.startswith("+sve")) {
-      hasVscaleRange = true;
+      hasSVE = true;
       break;
     }
   }
-  if (hasVscaleRange) {
+  if (vscaleMin || vscaleMax) {
     LowerCmdArgs.push_back("-vscale_range_min");
-    LowerCmdArgs.push_back(Args.MakeArgString(std::to_string(vscaleMin)));
+    LowerCmdArgs.push_back(Args.MakeArgString(
+        std::to_string(vscaleMin ? vscaleMin : 1)));
     LowerCmdArgs.push_back("-vscale_range_max");
     LowerCmdArgs.push_back(Args.MakeArgString(std::to_string(vscaleMax)));
+  } else {
+    if (hasSVE) {
+      LowerCmdArgs.push_back("-vscale_range_min");
+      LowerCmdArgs.push_back(Args.MakeArgString(std::to_string(1)));
+      LowerCmdArgs.push_back("-vscale_range_max");
+      LowerCmdArgs.push_back(Args.MakeArgString(std::to_string(16)));
+    }
   }
 
   // Set a -x flag for second part of Fortran frontend
