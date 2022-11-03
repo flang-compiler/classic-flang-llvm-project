@@ -628,14 +628,6 @@ private:
   /// Emit the reference to the section.
   void emitSectionReference(const DwarfCompileUnit &CU);
 
-#if 0
-  /// Populate dependent type variable map
-  void populateDependentTypeMap();
-#endif
-
-  /// Clear dependent type tracking map
-  void clearDependentTracking() { VariableInDependentType.clear(); }
-
 protected:
   /// Gather pre-function debug information.
   void beginFunctionImpl(const MachineFunction *MF) override;
