@@ -714,14 +714,6 @@ private:
   /// DwarfDebug::KeyInstructions.
   void computeKeyInstructions(const MachineFunction *MF);
 
-#if 0
-  /// Populate dependent type variable map
-  void populateDependentTypeMap();
-#endif
-
-  /// Clear dependent type tracking map
-  void clearDependentTracking() { VariableInDependentType.clear(); }
-
 protected:
   /// Gather pre-function debug information.
   void beginFunctionImpl(const MachineFunction *MF) override;
