@@ -214,15 +214,6 @@ public:
   LLVM_DUMP_METHOD void dump() const {
     for (const DbgValueLocEntry &DV : ValueLocEntries)
       DV.dump();
-//    if (isLocation()) {
-//      llvm::dbgs() << "Loc = { reg=" << Loc.getReg() << " ";
-//      if (Loc.isIndirect())
-//        llvm::dbgs() << "+0";
-//      llvm::dbgs() << "} ";
-//    } else if (isConstantInt())
-//      Constant.CIP->dump();
-//    else if (isConstantFP())
-//      Constant.CFP->dump();
     if (Expression)
       Expression->dump();
   }
@@ -290,9 +281,6 @@ public:
                 DebugLocStream::ListBuilder &List,
                 const DIBasicType *BT,
                 DwarfCompileUnit &TheCU);
-
-//  void finalize(const AsmPrinter &AP, DebugLocStream::ListBuilder &List,
-//                const DIStringType *ST, DwarfCompileUnit &TheCU);
 };
 
 /// Compare two DbgValueLocEntries for equality.
@@ -320,29 +308,6 @@ inline bool operator==(const DbgValueLoc &A, const DbgValueLoc &B) {
   return A.ValueLocEntries == B.ValueLocEntries &&
          A.Expression == B.Expression && A.IsVariadic == B.IsVariadic;
 }
-
-//inline bool operator==(const DbgValueLoc &A,
-//                       const DbgValueLoc &B) {
-//  if (A.EntryKind != B.EntryKind)
-//    return false;
-//
-//  if (A.Expression != B.Expression)
-//   return false;
-//
-//  switch (A.EntryKind) {
-//  case DbgValueLoc::E_Location:
-//    return A.Loc == B.Loc;
-//  case DbgValueLoc::E_TargetIndexLocation:
-//    return A.TIL == B.TIL;
-//  case DbgValueLoc::E_Integer:
-//    return A.Constant.Int == B.Constant.Int;
-//  case DbgValueLoc::E_ConstantFP:
-//    return A.Constant.CFP == B.Constant.CFP;
-//  case DbgValueLoc::E_ConstantInt:
-//    return A.Constant.CIP == B.Constant.CIP;
-//  }
-//  llvm_unreachable("unhandled EntryKind");
-//}
 
 /// Compare two fragments based on their offset.
 inline bool operator<(const DbgValueLoc &A,
