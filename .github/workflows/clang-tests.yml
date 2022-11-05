@@ -35,6 +35,11 @@ jobs:
       uses: llvm/actions/setup-windows@main
       with:
         arch: amd64
+    - name: Free disk space (Ubuntu)
+      if: startsWith(matrix.os, 'ubuntu')
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: false
     - name: Install Ninja
       uses: llvm/actions/install-ninja@main
     - uses: actions/checkout@v1
@@ -48,12 +53,12 @@ jobs:
       if: ${{ matrix.os == 'macOS-latest'}}
       run: |
         nproc="sysctl -n hw.logicalcpu"
-        ./build-llvm-project.sh -t X86 -e "clang" -p /usr/local -s -n `$nproc` -i -v
+        ./build-llvm-project.sh -t X86 -d RelWithDebInfo -e "clang" -p /usr/local -s -n `$nproc` -i -v
         cd build
         make check-all
     - name: Test clang ubuntu
       if: ${{ matrix.os == 'ubuntu-latest'}}
       run: |
-        ./build-llvm-project.sh -t X86 -p /usr/local -s -n $(nproc) -i -v
+        ./build-llvm-project.sh -t X86 -d RelWithDebInfo -p /usr/local -s -n $(nproc) -i -v
         cd build
         make check-all

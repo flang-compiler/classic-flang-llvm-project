@@ -16,6 +16,11 @@ jobs:
         version: [10, 11]
             
     steps:
+      - name: Free disk space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: false
+
       - if: matrix.cc == 'clang'
         run: |
           echo "cpp=clang++" >> $GITHUB_ENV
@@ -62,6 +67,7 @@ jobs:
           mkdir classic-flang-llvm-project
           ./build-llvm-project.sh \
             -t ${{ matrix.target }} \
+            -d RelWithDebInfo \
             -p /usr/local \
             -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} \
             -b /usr/bin/${{env.cpp}}-${{ matrix.version }} \

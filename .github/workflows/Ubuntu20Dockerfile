@@ -55,7 +55,7 @@ ARG BRANCH_NAME
 RUN mkdir /home/root && cd home/root && \
     git clone --depth 1 --single-branch --branch $BRANCH_NAME https://github.com/flang-compiler/classic-flang-llvm-project.git classic-flang-llvm-project && \
     cd classic-flang-llvm-project && \
-    ./build-llvm-project.sh -t AArch64 -p /home/github/usr/local -n `nproc --ignore=1` -a /usr/bin/gcc-10 -b /usr/bin/g++-10 -i -v
+    ./build-llvm-project.sh -t AArch64 -d RelWithDebInfo -p /home/github/usr/local -n `nproc --ignore=1` -a /usr/bin/gcc-10 -b /usr/bin/g++-10 -i -v
 
 RUN useradd github && \
     chown -R github:github /home/github
