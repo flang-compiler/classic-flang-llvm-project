@@ -47,7 +47,7 @@ jobs:
       - name: Build and install llvm
         run: |
           cd ${{ env.build_path }}/classic-flang-llvm-project
-          ./build-llvm-project.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} -b /usr/bin/${{ matrix.cpp }}-${{ matrix.version }} -n $(nproc) -i -v
+          ./build-llvm-project.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} -b /usr/bin/${{ matrix.cpp }}-${{ matrix.version }} -n $(nproc) -i -x "-DLLVM_ENABLE_ASSERTIONS=ON" -v
 
       - name: Checkout flang
         run: |
