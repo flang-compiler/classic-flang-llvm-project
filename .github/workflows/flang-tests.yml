@@ -68,7 +68,7 @@ jobs:
       - name: Checkout flang
         run: |
           cd ../..
-          git clone --depth 1 --single-branch --branch master https://github.com/flang-compiler/flang.git
+          git clone --depth 1 --single-branch --branch legacy https://github.com/flang-compiler/flang.git
 
       - name: Build and install libpgmath & flang
         run: |
