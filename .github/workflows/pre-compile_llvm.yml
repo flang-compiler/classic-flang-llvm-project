@@ -67,6 +67,7 @@ jobs:
             -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} \
             -b /usr/bin/${{env.cpp}}-${{ matrix.version }} \
             -n $(nproc) \
+            -x "-DLLVM_ENABLE_ASSERTIONS=ON" \
             -v
           # Archive the source + build directories for future installation
           cd ..
