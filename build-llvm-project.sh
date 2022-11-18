@@ -11,6 +11,7 @@ USE_SUDO="0"
 C_COMPILER_PATH="/usr/bin/gcc"
 CXX_COMPILER_PATH="/usr/bin/g++"
 LLVM_ENABLE_PROJECTS="clang;openmp"
+EXTRA_CMAKE_OPTS=""
 VERBOSE=""
 
 set -e # Exit script on first error.
@@ -37,21 +38,24 @@ function print_usage {
     echo "  -a  C compiler path. Default: /usr/bin/gcc";
     echo "  -b  C++ compiler path. Default: /usr/bin/g++";
     echo "  -e  List of the LLVM sub-projects to build. Default: clang;openmp";
+    echo "  -x  Extra CMake options. Default: ''";
     echo "  -v  Enable verbose output";
 }
-while getopts "t:d:p:n:c?i?s?a:b:e:v" opt; do
+
+while getopts "t:d:p:n:cisa:b:e:x:v?" opt; do
     case "$opt" in
-        t)  TARGET=$OPTARG;;
-        d)  BUILD_TYPE=$OPTARG;;
-        p)  INSTALL_PREFIX=$OPTARG;;
-        n)  NPROC=$OPTARG;;
-        c)  USE_CCACHE="1";;
-        i)  DO_INSTALL="1";;
-        s)  USE_SUDO="1";;
-        a)  C_COMPILER_PATH=$OPTARG;;
-        b)  CXX_COMPILER_PATH=$OPTARG;;
-        e)  LLVM_ENABLE_PROJECTS=$OPTARG;;
-        v)  VERBOSE="1";;
+        t) TARGET=$OPTARG;;
+        d) BUILD_TYPE=$OPTARG;;
+        p) INSTALL_PREFIX=$OPTARG;;
+        n) NPROC=$OPTARG;;
+        c) USE_CCACHE="1";;
+        i) DO_INSTALL="1";;
+        s) USE_SUDO="1";;
+        a) C_COMPILER_PATH=$OPTARG;;
+        b) CXX_COMPILER_PATH=$OPTARG;;
+        e) LLVM_ENABLE_PROJECTS=$OPTARG;;
+        x) EXTRA_CMAKE_OPTS="$OPTARG";;
+        v) VERBOSE="1";;
         ?) print_usage; exit 0;;
     esac
 done
@@ -71,6 +75,10 @@ if [ $USE_CCACHE == "1" ]; then
   CMAKE_OPTIONS="$CMAKE_OPTIONS \
       -DCMAKE_C_COMPILER_LAUNCHER=ccache \
       -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
+fi
+
+if [ -n "$EXTRA_CMAKE_OPTS" ]; then
+  CMAKE_OPTIONS="$CMAKE_OPTIONS $EXTRA_CMAKE_OPTS"
 fi
 
 # Build and install
