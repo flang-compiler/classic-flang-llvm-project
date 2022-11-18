@@ -73,9 +73,9 @@ jobs:
       - name: Copy llvm-lit
         run: |
           cd ../../flang
-          cp ../classic-flang-llvm-project/classic-flang-llvm-project/build/bin/llvm-lit build/bin/.
+          cp ../classic-flang-llvm-project/classic-flang-llvm-project/build/bin/llvm-lit build/flang/bin/
 
       - name: Test flang
         run: |
-          cd ../../flang/build
+          cd ../../flang/build/flang
           make check-all
