@@ -67,22 +67,41 @@ jobs:
           # We're using a specific version of macOS due to:
           # https://github.com/actions/virtual-environments/issues/5900
           - macOS-11
+          - windows-latest
+        include:
+          # Enable Windows on ARM build, when an official
+          # self-hosted machine is available.
+          # - os: self-hosted
+          #   target: AArch64
+          #   arch: arm64
+          - os: windows-latest
+            arch: amd64
+
     steps:
       # On Windows, starting with win19/20220814.1, cmake choose the 32-bit
       # python3.10.6 libraries instead of the 64-bit libraries when building
       # lldb.  Using this setup-python action to make 3.10 the default
       # python fixes this.
       - name: Setup Python
+        if: ${{ matrix.os != 'self-hosted' }}
         uses: actions/setup-python@42375524e23c412d93fb67b49958b491fce71c38 # v5.4.0
         with:
           python-version: ${{ inputs.python_version }}
       # actions/checkout deletes any existing files in the new git directory,
       # so this needs to either run before ccache-action or it has to use
       # clean: false.
+      - name: Setup psutil
+        # psutil is not available on Windows on ARM.
+        if: startsWith(matrix.os, 'windows')
+        run: pip install psutil
+      - name: Check tools
+        run: python --version
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 250
       - name: Setup ccache
+        # ccache is not available for Windows on ARM.
+        if: ${{ matrix.os != 'self-hosted' }}
         uses: hendrikmuhs/ccache-action@a1209f81afb8c005c13b4296c32e363431bffea5 # v1.2.17
         with:
           # A full build of llvm, clang, lld, and lldb takes about 250MB
@@ -96,6 +115,16 @@ jobs:
           max-size: 2G
           key: ${{ matrix.os }}
           variant: sccache
+      - name: Test clang Windows
+        # Some LLVM tests are failing on Windows On ARM,
+        # so this step is skipped on WoA until they are fixed.
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          $pcount = $($(Get-WmiObject -class Win32_ComputerSystem).numberoflogicalprocessors)
+          python .\scripts\build_llvm_project.py -d build -t ${{ matrix.target }} --cmake-param=-DLLVM_ENABLE_ASSERTIONS=ON -j $pcount
+          cd build
+          ninja check-all
+        shell: powershell
       - name: Test clang macOS
         if: ${{ matrix.os == 'macOS-11'}}
         env:
