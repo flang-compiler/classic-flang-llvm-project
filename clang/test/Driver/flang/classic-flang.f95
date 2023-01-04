@@ -59,17 +59,17 @@
 ! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -static-flang-libs \
 ! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-STATIC-FLANG,CHECK-NO-OMP %s
 
-! CHECK-LD:                "{{.*}}ld"
+! CHECK-LD:                "{{.*}}ld{{(.exe)?}}"
 ! CHECK-LD-NOT:            "-static"
-! CHECK-LD:                "{{[^"]*}}classic-flang-{{[^ ]*}}.o" "-lflangmain" "-lfoo" "-L{{[^ ]*}}/basic_linux_tree/usr/lib"
+! CHECK-LD:                "{{[^"]*}}classic-flang-{{[^ ]*}}.o" "-lflangmain" "-lfoo" "-L{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
 ! CHECK-DYNAMIC-FLANG-NOT: "-Bstatic"
 ! CHECK-DYNAMIC-FLANG:     "-lflang" "-lflangrti" "-lpgmath" "-lpthread" "-lrt" "-lm"
 ! CHECK-DYNAMIC-FLANG-NOT: "-Bdynamic"
 ! CHECK-STATIC-FLANG:      "-Bstatic" "-lflang" "-lflangrti" "-lpgmath" "-Bdynamic" "-lpthread" "-lrt" "-lm"
 ! CHECK-DYNAMIC-OMP-NOT:   "-Bstatic"
-! CHECK-DYNAMIC-OMP:       "-lomp" "-rpath" "{{[^ ]*}}/basic_linux_tree/usr/lib"
+! CHECK-DYNAMIC-OMP:       "-lomp" "-rpath" "{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
 ! CHECK-DYNAMIC-OMP-NOT:   "-Bdynamic"
-! CHECK-STATIC-OMP:        "-Bstatic" "-lomp" "-Bdynamic" "-rpath" "{{[^ ]*}}/basic_linux_tree/usr/lib"
+! CHECK-STATIC-OMP:        "-Bstatic" "-lomp" "-Bdynamic" "-rpath" "{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
 ! CHECK-NO-OMP-NOT:        "-lomp"
 
 ! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -static -static-flang-libs \
@@ -78,9 +78,9 @@
 ! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD-STATIC,CHECK-STATIC-BOTH %s
 ! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -static -fopenmp -static-openmp \
 ! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD-STATIC,CHECK-STATIC-BOTH %s
-! CHECK-LD-STATIC:     "{{.*}}ld"
+! CHECK-LD-STATIC:     "{{.*}}ld{{(.exe)?}}"
 ! CHECK-LD-STATIC:     "-static" "-o" "a.out"
-! CHECK-LD-STATIC:     "{{[^"]*}}classic-flang-{{[^ ]*}}.o" "-lflangmain" "-lfoo" "-L{{[^ ]*}}/basic_linux_tree/usr/lib"
+! CHECK-LD-STATIC:     "{{[^"]*}}classic-flang-{{[^ ]*}}.o" "-lflangmain" "-lfoo" "-L{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
 ! CHECK-LD-STATIC-NOT: "-Bstatic"
 ! CHECK-LD-STATIC:     "-lflang" "-lflangrti" "-lpgmath" "-lpthread" "-lrt" "-lm"
 ! CHECK-LD-STATIC-NOT: "-Bdynamic"
