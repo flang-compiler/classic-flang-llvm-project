@@ -40,29 +40,49 @@ jobs:
           # We're using a specific version of macOS due to:
           # https://github.com/actions/virtual-environments/issues/5900
           - macOS-11
+          - windows-latest
+        include:
+          # Enable Windows on ARM build, when an official
+          # self-hosted machine is available.
+          # - os: self-hosted
+          #   target: AArch64
+          #   arch: arm64
+          - os: windows-latest
+            arch: amd64
+
     steps:
       - name: Setup Windows
-        if: startsWith(matrix.os, 'windows')
+        if: startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'self')
         uses: llvm/actions/setup-windows@main
         with:
-          arch: amd64
-      # On Windows, starting with win19/20220814.1, cmake choose the 32-bit
-      # python3.10.6 libraries instead of the 64-bit libraries when building
-      # lldb.  Using this setup-python action to make 3.10 the default
-      # python fixes this.
+          arch: ${{ matrix.arch }}
+      # By default CMake chooses the most recent 32-bit libraries instead of
+      # the 64-bit libraries when building and testing LLVM or Clang.
+      # 32 bit version causes a memory error during the testing.
+      # On 'windows-latest' GitHub image (VS2022) 3.11 (32bit) version is installed.
+      # Using this setup-python action to make 3.11 (64bit) the default
       - name: Setup Python
+        if: ${{ matrix.os != 'self-hosted' }}
         uses: actions/setup-python@v4
         with:
-          python-version: '3.10'
+          python-version: '3.11'
       - name: Install Ninja
         uses: llvm/actions/install-ninja@main
       # actions/checkout deletes any existing files in the new git directory,
       # so this needs to either run before ccache-action or it has to use
       # clean: false.
+      - name: Setup psutil
+        # psutil is not available on Windows on ARM.
+        if: startsWith(matrix.os, 'windows')
+        run: pip install psutil
+      - name: Check tools
+        run: python --version
       - uses: actions/checkout@v3
         with:
           fetch-depth: 250
       - name: Setup ccache
+        # ccache is not available for Windows on ARM.
+        if: ${{ matrix.os != 'self-hosted' }}
         uses: hendrikmuhs/ccache-action@v1.2
         with:
           # A full build of llvm, clang, lld, and lldb takes about 250MB
@@ -74,6 +94,16 @@ jobs:
           # fit under the 10 GB limit.
           max-size: 500M
           key: ${{ matrix.os }}
+      - name: Test clang Windows
+        # Some LLVM tests are failing on Windows On ARM,
+        # so this step is skipped on WoA until they are fixed.
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          $pcount = $($(Get-WmiObject -class Win32_ComputerSystem).numberoflogicalprocessors)
+          python .\scripts\build_llvm_project.py -d build -t ${{ matrix.target }} --cmake-param=-DLLVM_ENABLE_ASSERTIONS=ON -j $pcount
+          cd build
+          ninja check-all
+        shell: powershell
       - name: Test clang macOS
         if: ${{ matrix.os == 'macOS-11'}}
         env:
