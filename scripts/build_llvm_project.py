@@ -25,8 +25,8 @@ def get_arguments():
   buildopt = parser.add_argument_group('general build options')
   buildopt.add_argument('-t', '--target', metavar='ARCH', choices=['X86', 'AArch64', 'PowerPC'], default='X86',
                         help='Control which targets are enabled (%(choices)s) (default: %(default)s)')
-  buildopt.add_argument('-p', '--install-prefix', metavar='PATH', nargs='?', default=Path(settings.LLVM_DIR,'..','install'), const=False,
-                        help='install directory (default: %(default)s) ')
+  buildopt.add_argument('-p', '--install-prefix', metavar='PATH', nargs='?', default=None, const=False,
+                        help='Install directory (default: do not install)')
   buildopt.add_argument('-j', '--jobs', metavar='N', type=int, default=os.cpu_count(),
                         help='number of parallel build jobs (default: %(default)s)')
   buildopt.add_argument('--toolchain', metavar='FILE', default=default_toolchain().as_posix(),
@@ -53,18 +53,20 @@ def get_arguments():
   return arguments
 
 def generate_buildoptions(arguments):
-  install_root = Path(arguments.install_prefix)
-
   base_cmake_args = [
-    f'-DCMAKE_INSTALL_PREFIX={install_root.as_posix()}',
     f'-DCMAKE_BUILD_TYPE={arguments.build_type}',
     f'-DCMAKE_TOOLCHAIN_FILE={arguments.toolchain}'
   ]
+
   if sys.platform == 'win32' and platform.uname()[4].lower() == 'arm64':
     base_cmake_args.append('-GNMake Makefiles')
   else:
     generator = 'Ninja' if sys.platform == 'win32' else 'Unix Makefiles'
     base_cmake_args.append(f'-G{generator}')
+
+  if arguments.install_prefix:
+    install_root = Path(arguments.install_prefix)
+    base_cmake_args.append(f'-DCMAKE_INSTALL_PREFIX={install_root.as_posix()}')
 
   if arguments.use_ccache:
     base_cmake_args.append('-DCMAKE_C_COMPILER_LAUNCHER=ccache')
@@ -144,7 +146,8 @@ def main():
   print_header('Building classic llvm')
   build_path = configure_llvm(arguments)
   build_project(build_path, arguments)
-  install_project(build_path, arguments)
+  if arguments.install_prefix is not None:
+    install_project(build_path, arguments)
 
 if __name__ == "__main__":
   main()
