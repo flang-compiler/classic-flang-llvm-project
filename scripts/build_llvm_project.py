@@ -80,7 +80,7 @@ def generate_buildoptions(arguments):
     base_cmake_args.append(f'-DCMAKE_CXX_COMPILER={arguments.cxx}')
 
   if arguments.verbose:
-    base_cmake_args.extend('-DCMAKE_VERBOSE_MAKEFILE=ON')
+    base_cmake_args.append('-DCMAKE_VERBOSE_MAKEFILE=ON')
 
   return base_cmake_args
 
