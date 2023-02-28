@@ -175,14 +175,15 @@ bool types::isAcceptedByFlang(ID Id) {
   case TY_PP_F_FreeForm:
   case TY_F_FixedForm:
   case TY_PP_F_FixedForm:
+    return true;
 #else
   case TY_Fortran:
   case TY_PP_Fortran:
-#endif
     return true;
   case TY_LLVM_IR:
   case TY_LLVM_BC:
     return true;
+#endif
   }
 }
 
