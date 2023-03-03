@@ -4948,6 +4948,10 @@ def fbackslash : Flag<["-"], "fbackslash">, Group<gfortran_Group>,
   DocBrief<[{Change the interpretation of backslashes in string literals from
 a single backslash character to "C-style" escape characters.}]>;
 def fno_backslash : Flag<["-"], "fno-backslash">, Group<gfortran_Group>;
+// Add the options -f(no-)implicit-none and -f(no-)automatic for compatibility
+// reason. They are not implemented yet in Classic Flang for now.
+defm implicit_none : BooleanFFlag<"implicit-none">, Group<gfortran_Group>;
+def fno_automatic : Flag<["-"], "fno-automatic">, Group<gfortran_Group>;
 #else
 defm backslash : OptInFC1FFlag<"backslash", "Specify that backslash in string introduces an escape character">;
 defm xor_operator : OptInFC1FFlag<"xor-operator", "Enable .XOR. as a synonym of .NEQV.">;
