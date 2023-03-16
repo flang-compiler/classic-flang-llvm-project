@@ -26,27 +26,29 @@ def get_arguments():
   buildopt.add_argument('-t', '--target', metavar='ARCH', choices=['X86', 'AArch64', 'PowerPC'], default='X86',
                         help='Control which targets are enabled (%(choices)s) (default: %(default)s)')
   buildopt.add_argument('-p', '--install-prefix', metavar='PATH', nargs='?', default=None, const=False,
-                        help='Install directory (default: do not install)')
+                        help='Specify installation directory (default: platform-specific location)')
+  buildopt.add_argument('-i', '--install', action='store_true', default=False,
+                        help='Install LLVM (default: do not install)')
   buildopt.add_argument('-j', '--jobs', metavar='N', type=int, default=os.cpu_count(),
-                        help='number of parallel build jobs (default: %(default)s)')
+                        help='Number of parallel build jobs (default: %(default)s)')
   buildopt.add_argument('--toolchain', metavar='FILE', default=default_toolchain().as_posix(),
-                        help='specify toolchain file (default: %(default)s)')
+                        help='Specify toolchain file (default: %(default)s)')
   buildopt.add_argument('-d', '--builddir', metavar='DIR', default='build',
-                        help=f'specify build directory (default: {settings.LLVM_DIR}/%(default)s)')
+                        help=f'Specify build directory (default: {settings.LLVM_DIR}/%(default)s)')
   buildopt.add_argument('--clean', action='store_true', default=False,
-                        help='clean build')
+                        help='Clean build')
   buildopt.add_argument('-b', '--build-type', metavar='TYPE', default='Release',
-                        help='set build type (default: %(default)s)')
+                        help='Set build type (default: %(default)s)')
   buildopt.add_argument('-x', '--cmake-param', metavar='OPT', action='append', default=[],
-                        help='add custom argument to CMake')
+                        help='Add custom argument to CMake')
   buildopt.add_argument('-e', '--llvm-enable-projects', metavar='OPT', action='append', default=['clang'] if sys.platform == 'win32' else ['clang', 'openmp'],
-                        help='enable llvm projects to build (in quotation marks separated by semicolons e.g.: "clang;openmp")')
+                        help='Enable LLVM projects to build (in quotation marks separated by semicolons e.g.: "clang;openmp")')
   buildopt.add_argument('-c', '--use-ccache', action="store_true", default=False,
                         help='Using ccache during the build (default: %(default)s)')
   buildopt.add_argument('--cc', metavar='OPT', default=None,
-                        help='use specific C compiler')
+                        help='Use specific C compiler')
   buildopt.add_argument('--cxx', metavar='OPT', default=None,
-                        help='use specific C++ compiler')
+                        help='Use specific C++ compiler')
   buildopt.add_argument('-v', '--verbose', action='store_true', default=False,
                         help='Verbose build (default: %(default)s')
   arguments = parser.parse_args()
@@ -58,11 +60,8 @@ def generate_buildoptions(arguments):
     f'-DCMAKE_TOOLCHAIN_FILE={arguments.toolchain}'
   ]
 
-  if sys.platform == 'win32' and platform.uname()[4].lower() == 'arm64':
-    base_cmake_args.append('-GNMake Makefiles')
-  else:
-    generator = 'Ninja' if sys.platform == 'win32' else 'Unix Makefiles'
-    base_cmake_args.append(f'-G{generator}')
+  generator = 'Ninja' if sys.platform == 'win32' else 'Unix Makefiles'
+  base_cmake_args.append(f'-G{generator}')
 
   if arguments.install_prefix:
     install_root = Path(arguments.install_prefix)
@@ -143,10 +142,10 @@ def print_header(title):
 def main():
   arguments = get_arguments()
 
-  print_header('Building classic llvm')
+  print_header('Building classic LLVM')
   build_path = configure_llvm(arguments)
   build_project(build_path, arguments)
-  if arguments.install_prefix is not None:
+  if arguments.install:
     install_project(build_path, arguments)
 
 if __name__ == "__main__":
