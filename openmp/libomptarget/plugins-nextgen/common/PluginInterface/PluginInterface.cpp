@@ -737,7 +737,7 @@ Expected<void *> GenericDeviceTy::dataAlloc(int64_t Size, void *HostPtr,
   // Register allocated buffer as pinned memory if the type is host memory.
   if (Kind == TARGET_ALLOC_HOST)
     if (auto Err = PinnedAllocs.registerHostBuffer(Alloc, Alloc, Size))
-      return Err;
+      return std::move(Err);
 
   return Alloc;
 }
