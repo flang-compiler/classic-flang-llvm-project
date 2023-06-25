@@ -672,16 +672,19 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   // Define Target specific macros like __linux__
   TI->getTargetDefines(LO, Builder);
 
-  Builder.defineMacro("__SIZE_TYPE__", TargetInfo::getTypeName(TI->getSizeType()));
-  Builder.defineMacro("__PTRDIFF_TYPE__", TargetInfo::getTypeName(TI->getPtrDiffType(0)));
+  Builder.defineMacro("__SIZE_TYPE__",
+                      TargetInfo::getTypeName(TI->getSizeType()));
+  Builder.defineMacro(
+      "__PTRDIFF_TYPE__",
+      TargetInfo::getTypeName(TI->getPtrDiffType(LangAS::Default)));
 
-  if (TI->getPointerWidth(0) == 64 && TI->getLongWidth() == 64
+  if (TI->getPointerWidth(LangAS::Default) == 64 && TI->getLongWidth() == 64
       && TI->getIntWidth() == 32) {
     Builder.defineMacro("_LP64");
     Builder.defineMacro("__LP64__");
   }
 
-  if (TI->getPointerWidth(0) == 32 && TI->getLongWidth() == 32
+  if (TI->getPointerWidth(LangAS::Default) == 32 && TI->getLongWidth() == 32
       && TI->getIntWidth() == 32) {
     Builder.defineMacro("_ILP32");
     Builder.defineMacro("__ILP32__");
