@@ -57,7 +57,7 @@ jobs:
       - name: Build and install libpgmath & flang
         run: |
           cd ${{ env.build_path }}/flang
-          ./build-flang.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -n $(nproc)
+          ./build-flang.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -n $(nproc) -l ${{ env.build_path }}/classic-flang-llvm-project/llvm
 
       - name: Copy llvm-lit
         run: |
