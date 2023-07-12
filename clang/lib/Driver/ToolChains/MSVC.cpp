@@ -689,6 +689,42 @@ void MSVCToolChain::AddSystemIncludeWithSubfolder(
   addSystemInclude(DriverArgs, CC1Args, path);
 }
 
+#ifdef ENABLE_CLASSIC_FLANG
+/// Convert path list to Fortran frontend argument
+static void AddFlangSysIncludeArg(const ArgList &DriverArgs,
+                                  ArgStringList &Flang1Args,
+                                  ToolChain::path_list IncludePathList) {
+  std::string ArgValue; // Path argument value
+
+  // Make up argument value consisting of paths separated by colons
+  bool first = true;
+  for (auto P : IncludePathList) {
+    if (first) {
+      first = false;
+    } else {
+      ArgValue += ";";
+    }
+    ArgValue += P;
+  }
+
+  // Add the argument
+  Flang1Args.push_back("-stdinc");
+  Flang1Args.push_back(DriverArgs.MakeArgString(ArgValue));
+}
+
+void MSVCToolChain::AddFlangSystemIncludeArgs(const ArgList &DriverArgs,
+                                      ArgStringList &Flang1Args) const {
+path_list IncludePathList;
+  const Driver &D = getDriver();
+  if (DriverArgs.hasArg(options::OPT_nostdinc))
+    return;
+  SmallString<128> P(D.InstalledDir);
+  llvm::sys::path::append(P, "../include");
+  IncludePathList.push_back(P.c_str());
+  AddFlangSysIncludeArg(DriverArgs, Flang1Args, IncludePathList);
+}
+#endif
+
 void MSVCToolChain::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
                                               ArgStringList &CC1Args) const {
   if (DriverArgs.hasArg(options::OPT_nostdinc))
