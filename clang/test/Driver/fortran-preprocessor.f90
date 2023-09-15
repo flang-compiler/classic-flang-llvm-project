@@ -2,7 +2,7 @@
 
 ! -cpp should preprocess as it goes, regardless of input file extension
 ! RUN: %flang -cpp -c -DHELLO="hello all" -### %s 2>&1 | FileCheck %s --check-prefixes=ALL,CPP,PP
-! RUN: %flang -cpp -c -DHELLO="hello all" -### -c f95-cpp-input %s 2>&1 | FileCheck %s --check-prefixes=ALL,CPP,PP
+! RUN: %flang -cpp -c -DHELLO="hello all" -### -x f95-cpp-input %s 2>&1 | FileCheck %s --check-prefixes=ALL,CPP,PP
 ! -E should preprocess then stop, regardless of input file extension
 ! RUN: %flang -E -DHELLO="hello all" -### %s 2>&1 | FileCheck %s --check-prefixes=ALL,E,PPONLY
 ! RUN: %flang -E -DHELLO="hello all" -### -x f95-cpp-input %s 2>&1 | FileCheck %s --check-prefixes=ALL,E,PPONLY
@@ -17,9 +17,9 @@
 
 ! Test -save-temps does not break things (same codepath as -traditional-cpp bug above)
 ! RUN: %flang -E -DHELLO="hello all" -save-temps -### %s 2>&1 | FileCheck %s --check-prefixes=ALL,E,PPONLY
-! RUN: %flang -E -DHELLO="hello all" -save-temps -### -c f95-cpp-input %s 2>&1 | FileCheck %s --check-prefixes=ALL,E,PPONLY
-! RUN: %flang -cpp -c -DHELLO="hello all" -save-temps -### %s 2>&1 | FileCheck %s --check-prefixes=ALL,CPP
-! RUN: %flang -cpp -c -DHELLO="hello all" -save-temps -### -c f95-cpp-input %s 2>&1 | FileCheck %s --check-prefixes=ALL,CPP
+! RUN: %flang -E -DHELLO="hello all" -save-temps -### -x f95-cpp-input %s 2>&1 | FileCheck %s --check-prefixes=ALL,E,PPONLY
+! RUN: %flang -cpp -c -DHELLO="hello all" -save-temps -### %s 2>&1 | FileCheck %s --check-prefixes=ALL,CPP,PP
+! RUN: %flang -cpp -c -DHELLO="hello all" -save-temps -### -x f95-cpp-input %s 2>&1 | FileCheck %s --check-prefixes=ALL,CPP,PP
 
 ! Test for the correct cmdline flags
 ! Consume up to flang1 line
@@ -31,12 +31,13 @@
 ! E-DAG: "-es"
 ! E-DAG: "-preprocess"
 
-! flang1 should only be called once!
-! ALL-NOT: "{{.*}}flang1"
-
 ! CPP should continue to build object
 ! PP: "{{.*}}flang2"
 ! PPONLY-NOT: "{{.*}}flang2"
+
+! flang1 and flang2 should only be called at most once!
+! ALL-NOT: "{{.*}}flang1"
+! ALL-NOT: "{{.*}}flang2"
 
 ! These commands should never call a linker!
 ! ALL-NOT: "{{.*}}ld"
