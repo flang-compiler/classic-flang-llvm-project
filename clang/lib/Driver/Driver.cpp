@@ -5116,8 +5116,17 @@ class ToolSelector final {
   /// are appended to \a CollapsedOffloadAction.
   void combineWithPreprocessor(const Tool *T, ActionList &Inputs,
                                ActionList &CollapsedOffloadAction) {
+#ifdef ENABLE_CLASSIC_FLANG
+    // flang1 always combines preprocessing and compilation.
+    // Do not return early even when -save-temps is used.
+    if (!T || !T->hasIntegratedCPP() ||
+        (strcmp(T->getName(), "classic-flang") &&
+         !canCollapsePreprocessorAction()))
+      return;
+#else
     if (!T || !canCollapsePreprocessorAction() || !T->hasIntegratedCPP())
       return;
+#endif
 
     // Attempt to get a preprocessor action dependence.
     ActionList PreprocessJobOffloadActions;
