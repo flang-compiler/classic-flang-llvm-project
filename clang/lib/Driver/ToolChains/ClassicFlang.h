@@ -28,7 +28,7 @@ namespace tools {
 class LLVM_LIBRARY_VISIBILITY ClassicFlang : public Tool {
 public:
   ClassicFlang(const ToolChain &TC)
-      : Tool("flang:frontend",
+      : Tool("classic-flang",
              "Fortran frontend to LLVM", TC) {}
 
   bool hasGoodDiagnostics() const override { return true; }
