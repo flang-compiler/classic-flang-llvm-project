@@ -45,10 +45,8 @@ L.entry:
   ret void
 
 ; CHECK-NOT: __pd_log_4
-; CHECK: __pd_log_1
-; CHECK: __pd_log_1
-; CHECK: __pd_log_1
-; CHECK: __pd_log_1
+; CHECK: __pd_log_2
+; CHECK: __pd_log_2
 }
 
 ; Function Attrs: nounwind readnone willreturn
