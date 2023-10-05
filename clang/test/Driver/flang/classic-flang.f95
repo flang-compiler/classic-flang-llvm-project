@@ -67,9 +67,9 @@
 ! CHECK-DYNAMIC-FLANG-NOT: "-Bdynamic"
 ! CHECK-STATIC-FLANG:      "-Bstatic" "-lflang" "-lflangrti" "-lpgmath" "-Bdynamic" "-lpthread" "-lrt" "-lm"
 ! CHECK-DYNAMIC-OMP-NOT:   "-Bstatic"
-! CHECK-DYNAMIC-OMP:       "-lomp" "-rpath" "{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
+! CHECK-DYNAMIC-OMP:       "-lomp" "-L{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
 ! CHECK-DYNAMIC-OMP-NOT:   "-Bdynamic"
-! CHECK-STATIC-OMP:        "-Bstatic" "-lomp" "-Bdynamic" "-rpath" "{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
+! CHECK-STATIC-OMP:        "-Bstatic" "-lomp" "-Bdynamic" "-L{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
 ! CHECK-NO-OMP-NOT:        "-lomp"
 
 ! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -static -static-flang-libs \
