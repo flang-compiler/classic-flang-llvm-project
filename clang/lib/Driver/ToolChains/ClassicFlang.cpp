@@ -31,8 +31,8 @@
 #include "llvm/Support/FileSystem.h"
 #include "llvm/Support/Path.h"
 #include "llvm/Support/Process.h"
-#include "llvm/Support/TargetParser.h"
 #include "llvm/Support/YAMLParser.h"
+#include "llvm/TargetParser/TargetParser.h"
 
 #ifdef LLVM_ON_UNIX
 #include <unistd.h> // For getuid().
