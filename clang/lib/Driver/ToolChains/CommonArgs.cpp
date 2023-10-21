@@ -149,19 +149,14 @@ static bool shouldIgnoreUnsupportedTargetFeature(const Arg &TargetFeatureArg,
 #ifdef ENABLE_CLASSIC_FLANG
 /// \brief Determine if Fortran "main" object is needed
 bool tools::needFortranMain(const Driver &D, const ArgList &Args) {
-  return (needFortranLibs(D, Args)
-       && (!Args.hasArg(options::OPT_Mnomain) ||
-           !Args.hasArg(options::OPT_no_fortran_main)));
+  return (needFortranLibs(D, Args) && !Args.hasArg(options::OPT_Mnomain) &&
+          !Args.hasArg(options::OPT_no_fortran_main));
 }
 
 /// \brief Determine if Fortran link libraies are needed
 bool tools::needFortranLibs(const Driver &D, const ArgList &Args) {
-  if (D.IsFlangMode() && !Args.hasArg(options::OPT_nostdlib) &&
-      !Args.hasArg(options::OPT_noFlangLibs)) {
-    return true;
-  }
-
-  return false;
+  return (D.IsFlangMode() && !Args.hasArg(options::OPT_nostdlib) &&
+          !Args.hasArg(options::OPT_noFlangLibs));
 }
 #endif
 
