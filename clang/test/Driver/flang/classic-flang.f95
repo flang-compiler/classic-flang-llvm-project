@@ -45,23 +45,29 @@
 ! Check that the linker job is given the correct libraries and library paths.
 
 ! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -mp \
-! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-DYNAMIC-FLANG,CHECK-DYNAMIC-OMP %s
+! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-MAIN,CHECK-DYNAMIC-FLANG,CHECK-DYNAMIC-OMP %s
 ! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -mp -nomp \
-! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-DYNAMIC-FLANG,CHECK-NO-OMP %s
+! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-MAIN,CHECK-DYNAMIC-FLANG,CHECK-NO-OMP %s
 ! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -fopenmp \
-! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-DYNAMIC-FLANG,CHECK-DYNAMIC-OMP %s
+! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-MAIN,CHECK-DYNAMIC-FLANG,CHECK-DYNAMIC-OMP %s
 ! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -fopenmp -fno-openmp \
-! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-DYNAMIC-FLANG,CHECK-NO-OMP %s
+! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-MAIN,CHECK-DYNAMIC-FLANG,CHECK-NO-OMP %s
 ! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -fopenmp -static-openmp \
-! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-DYNAMIC-FLANG,CHECK-STATIC-OMP %s
+! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-MAIN,CHECK-DYNAMIC-FLANG,CHECK-STATIC-OMP %s
 ! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -fopenmp -static-flang-libs \
-! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-STATIC-FLANG,CHECK-DYNAMIC-OMP %s
+! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-MAIN,CHECK-STATIC-FLANG,CHECK-DYNAMIC-OMP %s
 ! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -static-flang-libs \
-! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-STATIC-FLANG,CHECK-NO-OMP %s
-
+! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-MAIN,CHECK-STATIC-FLANG,CHECK-NO-OMP %s
+! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -Mnomain \
+! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-NOMAIN,CHECK-DYNAMIC-FLANG %s
+! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -fno-fortran-main \
+! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-LD,CHECK-NOMAIN,CHECK-DYNAMIC-FLANG %s
 ! CHECK-LD:                "{{.*}}ld{{(.exe)?}}"
 ! CHECK-LD-NOT:            "-static"
-! CHECK-LD:                "{{[^"]*}}classic-flang-{{[^ ]*}}.o" "-lflangmain" "-lfoo" "-L{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
+! CHECK-LD-SAME:           "{{[^"]*}}classic-flang-{{[^ ]*}}.o"
+! CHECK-MAIN-SAME:         "-lflangmain"
+! CHECK-NOMAIN-NOT:        "-lflangmain"
+! CHECK-LD-SAME:           "-lfoo" "-L{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
 ! CHECK-DYNAMIC-FLANG-NOT: "-Bstatic"
 ! CHECK-DYNAMIC-FLANG:     "-lflang" "-lflangrti" "-lpgmath" "-lpthread" "-lrt" "-lm"
 ! CHECK-DYNAMIC-FLANG-NOT: "-Bdynamic"
@@ -87,3 +93,28 @@
 ! CHECK-STATIC-BOTH-NOT: "-Bstatic"
 ! CHECK-STATIC-BOTH:     "-lomp"
 ! CHECK-STATIC-BOTH-NOT: "-Bdynamic"
+
+! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -no-flang-libs \
+! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-NOFLANGLIBS %s
+! CHECK-NOFLANGLIBS:      "{{.*}}ld{{(.exe)?}}"
+! CHECK-NOFLANGLIBS-SAME: "{{[^"]*}}classic-flang-{{[^ ]*}}.o"
+! CHECK-NOFLANGLIBS-NOT:  "-lflangmain"
+! CHECK-NOFLANGLIBS-SAME: "-lfoo" "-L{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
+! CHECK-NOFLANGLIBS-NOT:  "-lflang" "-lflangrti" "-lpgmath"
+! CHECK-NOFLANGLIBS:      "-lm" "-lgcc"
+! CHECK-NOFLANGLIBS:      "-lgcc_s"
+! CHECK-NOFLANGLIBS:      "-lc"
+
+! In Flang mode, we always link with libm, even with -nostdlib.
+! RUN: %flang -target x86_64-linux-gnu -ccc-install-dir %S/../Inputs/basic_linux_tree/usr/bin -nostdlib \
+! RUN:     %s -lfoo -### 2>&1 | FileCheck --check-prefixes=CHECK-NOSTDLIB %s
+! CHECK-NOSTDLIB:      "{{.*}}ld{{(.exe)?}}"
+! CHECK-NOSTDLIB-SAME: "{{[^"]*}}classic-flang-{{[^ ]*}}.o"
+! CHECK-NOSTDLIB-NOT:  "-lflangmain"
+! CHECK-NOSTDLIB-SAME: "-lfoo" "-L{{[^ ]*[/\\]+}}basic_linux_tree{{[/\\]+}}usr{{[/\\]+}}lib"
+! CHECK-NOSTDLIB-NOT:  "-lflang" "-lflangrti" "-lpgmath"
+! CHECK-NOSTDLIB-NOT:  "-lpthread" "-lrt"
+! CHECK-NOSTDLIB:      "-lm"
+! CHECK-NOSTDLIB-NOT:  "-lgcc"
+! CHECK-NOSTDLIB-NOT:  "-lgcc_s"
+! CHECK-NOSTDLIB-NOT:  "-lc"
