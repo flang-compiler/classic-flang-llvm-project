@@ -13,32 +13,26 @@ jobs:
     strategy:
       matrix:
         target: [X86]
-        cc: [clang, gcc]
-        version: [10, 11]
+        cc: [clang]
+        cpp: [clang++]
+        version: [14, 15]
+        include:
+          - target: X86
+            cc: gcc
+            cpp: g++
+            version: 12
 
     steps:
       - if: matrix.cc == 'clang'
         run: |
-          echo "cpp=clang++" >> $GITHUB_ENV
           sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
-          sudo touch /etc/apt/sources.list.d/llvm.list
-          echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main' | sudo tee -a /etc/apt/sources.list.d/llvm.list
-          echo 'deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main'  | sudo tee -a /etc/apt/sources.list.d/llvm.list
-          wget -q -O - http://apt.llvm.org/llvm-snapshot.gpg.key|sudo apt-key add -
           sudo apt update
-          sudo apt install -f -y llvm-${{ matrix.version }} clang-${{ matrix.version}}
+          sudo apt install -f -y llvm-${{ matrix.version }} clang-${{ matrix.version }}
 
-      - if: matrix.cc == 'gcc' && matrix.version == '10'
+      - if: matrix.cc == 'gcc'
         run: |
-          echo "cpp=g++" >> $GITHUB_ENV
           sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
-          sudo apt install gcc-10 g++-10
-
-      - if: matrix.cc == 'gcc' && matrix.version == '11'
-        run: |
-          echo "cpp=g++" >> $GITHUB_ENV
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
-          sudo apt install gcc-11 g++-11
+          sudo apt install gcc-${{ matrix.version }} g++-${{ matrix.vresion }}
 
       - name: Check tools
         run: |
@@ -46,7 +40,7 @@ jobs:
           cmake --version
           make --version
           ${{ matrix.cc }}-${{ matrix.version }} --version
-          ${{env.cpp}}-${{ matrix.version }} --version
+          ${{ matrix.cpp }}-${{ matrix.version }} --version
 
       - name: Extract branch name
         run: echo "::set-output name=branch::${GITHUB_REF#refs/heads/}"
@@ -66,7 +60,7 @@ jobs:
             -t ${{ matrix.target }} \
             -p /usr/local \
             -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} \
-            -b /usr/bin/${{env.cpp}}-${{ matrix.version }} \
+            -b /usr/bin/${{ matrix.cpp }}-${{ matrix.version }} \
             -n $(nproc) \
             -x "-DLLVM_ENABLE_ASSERTIONS=ON" \
             -v
