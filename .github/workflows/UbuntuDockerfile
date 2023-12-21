@@ -1,4 +1,4 @@
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 ENV TZ=Europe/London
@@ -24,15 +24,9 @@ RUN apt-get update && \
 RUN apt-get install -y software-properties-common && \
     apt-get update && \
     add-apt-repository ppa:ubuntu-toolchain-r/test && \
-    apt-get install -f -y gcc-9 g++-9 && \
-    apt-get install -f -y gcc-10 g++-10 && \
-    echo 'deb http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main' | tee -a /etc/apt/sources.list.d/llvm.list && \
-    echo 'deb-src http://apt.llvm.org/focal/ llvm-toolchain-focal-11 main' | tee -a /etc/apt/sources.list.d/llvm.list && \
-    wget -q -O - http://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add - && \
-    apt-get update && \
-    apt-get install -f -y llvm-9 clang-9 && \
-    apt-get install -f -y llvm-10 clang-10 && \
-    apt-get install -f -y llvm-11 clang-11
+    apt-get install -f -y gcc-12 g++-12 && \
+    apt-get install -f -y llvm-14 clang-14 && \
+    apt-get install -f -y llvm-15 clang-15
 
 # Install the tools for release_13x and newer
 RUN apt --fix-missing update && \
@@ -57,7 +51,7 @@ RUN if [ "$INITIAL_BUILD" != "true" ]; then \
     mkdir /home/root && cd home/root && \
     git clone --depth 1 --single-branch --branch $BRANCH_NAME https://github.com/flang-compiler/classic-flang-llvm-project.git classic-flang-llvm-project && \
     cd classic-flang-llvm-project && \
-    ./build-llvm-project.sh -t AArch64 -p /home/github/usr/local -n `nproc --ignore=1` -a /usr/bin/gcc-10 -b /usr/bin/g++-10 -i -x "-DLLVM_ENABLE_ASSERTIONS=ON" -v; \
+    ./build-llvm-project.sh -t AArch64 -p /home/github/usr/local -n `nproc --ignore=1` -a /usr/bin/gcc-12 -b /usr/bin/g++-12 -i -x "-DLLVM_ENABLE_ASSERTIONS=ON" -v; \
     fi
 
 RUN useradd github && \

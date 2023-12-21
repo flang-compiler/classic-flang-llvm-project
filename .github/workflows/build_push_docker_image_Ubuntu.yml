@@ -11,8 +11,8 @@ on:
     branches:
       - 'release_*x'
     paths-include:
-      - '**/.github/workflows/build_push_docker_image_Ubuntu20.yml'
-      - '**/.github/workflows/Ubuntu20Dockerfile.yml'
+      - '**/.github/workflows/build_push_docker_image_Ubuntu.yml'
+      - '**/.github/workflows/UbuntuDockerfile.yml'
 
 jobs:
   docker:
@@ -38,11 +38,11 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
-          file: .github/workflows/Ubuntu20Dockerfile
+          file: .github/workflows/UbuntuDockerfile
           push: true
           no-cache: true
           context: .github/workflows
-          tags: ghcr.io/${{ github.repository_owner }}/ubuntu20-flang-${{ steps.extract_branch.outputs.branch }}:latest
+          tags: ghcr.io/${{ github.repository_owner }}/ubuntu-flang-${{ steps.extract_branch.outputs.branch }}:latest
           platforms: linux/arm64
           build-args: |
             BRANCH_NAME=${{ steps.extract_branch.outputs.branch }}
