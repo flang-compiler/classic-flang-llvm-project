@@ -34,7 +34,7 @@ RUN apt --fix-missing update && \
     libssl-dev zlib1g-dev \
     libbz2-dev libreadline-dev libsqlite3-dev libncurses5-dev && \
     apt install -y python3-distutils python3-psutil \
-    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python-openssl
+    libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl
 
 RUN cd /opt && \
     wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0-linux-aarch64.sh && \
