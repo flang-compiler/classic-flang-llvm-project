@@ -4,6 +4,11 @@
 // RUN: env OMP_PLACES=sockets %libomp-run
 // REQUIRES: linux
 
+// This test currently fails on GitHub runners. See:
+// https://github.com/flang-compiler/classic-flang-llvm-project/issues/171
+//
+// XFAIL: linux
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
