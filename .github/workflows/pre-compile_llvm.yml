@@ -32,7 +32,7 @@ jobs:
       - if: matrix.cc == 'gcc'
         run: |
           sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
-          sudo apt install gcc-${{ matrix.version }} g++-${{ matrix.vresion }}
+          sudo apt install gcc-${{ matrix.version }} g++-${{ matrix.version }}
 
       - name: Check tools
         run: |
