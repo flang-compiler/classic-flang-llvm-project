@@ -1553,7 +1553,11 @@ LLVMMetadataRef LLVMDIBuilderCreateGlobalVariableExpression(
       unwrapDI<DIScope>(Scope), {Name, NameLen}, {Linkage, LinkLen},
       unwrapDI<DIFile>(File), LineNo, unwrapDI<DIType>(Ty), LocalToUnit,
       true, unwrap<DIExpression>(Expr), unwrapDI<MDNode>(Decl),
-      nullptr, map_from_llvmDIFlags(Flags), AlignInBits));
+      nullptr,
+#ifdef ENABLE_CLASSIC_FLANG
+      map_from_llvmDIFlags(Flags),
+#endif
+      AlignInBits));
 }
 
 LLVMMetadataRef LLVMDIGlobalVariableExpressionGetVariable(LLVMMetadataRef GVE) {
@@ -1602,7 +1606,10 @@ LLVMMetadataRef LLVMDIBuilderCreateTempGlobalVariableFwdDecl(
   return wrap(unwrap(Builder)->createTempGlobalVariableFwdDecl(
       unwrapDI<DIScope>(Scope), {Name, NameLen}, {Linkage, LnkLen},
       unwrapDI<DIFile>(File), LineNo, unwrapDI<DIType>(Ty), LocalToUnit,
-      unwrapDI<MDNode>(Decl), nullptr, map_from_llvmDIFlags(Flags),
+      unwrapDI<MDNode>(Decl), nullptr,
+#ifdef ENABLE_CLASSIC_FLANG
+      map_from_llvmDIFlags(Flags),
+#endif
       AlignInBits));
 }
 
