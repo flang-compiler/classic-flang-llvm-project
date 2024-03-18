@@ -731,19 +731,16 @@ DIGlobalVariableExpression *DIBuilder::createGlobalVariableExpression(
     uint32_t AlignInBits, DINodeArray Annotations) {
   checkGlobalVariableScope(Context);
 
-#ifdef ENABLE_CLASSIC_FLANG    
-  auto *GV = DIGlobalVariable::getDistinct(
-      VMContext, cast_or_null<DIScope>(Context), Name, LinkageName, F,
-      LineNumber, Ty, IsLocalToUnit, isDefined,
-      cast_or_null<DIDerivedType>(Decl), TemplateParams, Flags,
-      AlignInBits, Annotations);
-#else
   auto *GV = DIGlobalVariable::getDistinct(
       VMContext, cast_or_null<DIScope>(Context), Name, LinkageName, F,
       LineNumber, Ty, IsLocalToUnit, isDefined,
       cast_or_null<DIDerivedType>(Decl), TemplateParams,
+#ifdef ENABLE_CLASSIC_FLANG  
+      Flags,
+#else
+      DINode::FlagZero,
+#endif
       AlignInBits, Annotations);
-#endif    
   if (!Expr)
     Expr = createExpression();
   auto *N = DIGlobalVariableExpression::get(VMContext, GV, Expr);
@@ -754,27 +751,24 @@ DIGlobalVariableExpression *DIBuilder::createGlobalVariableExpression(
 DIGlobalVariable *DIBuilder::createTempGlobalVariableFwdDecl(
     DIScope *Context, StringRef Name, StringRef LinkageName, DIFile *F,
     unsigned LineNumber, DIType *Ty, bool IsLocalToUnit, MDNode *Decl,
-    MDTuple *TemplateParams, 
+    MDTuple *TemplateParams,
 #ifdef ENABLE_CLASSIC_FLANG
     DINode::DIFlags Flags,
 #endif
     uint32_t AlignInBits) {
   checkGlobalVariableScope(Context);
-#ifdef ENABLE_CLASSIC_FLANG   
-  return DIGlobalVariable::getTemporary(
-             VMContext, cast_or_null<DIScope>(Context), Name, LinkageName, F,
-             LineNumber, Ty, IsLocalToUnit, false,
-             cast_or_null<DIDerivedType>(Decl), TemplateParams, Flags,
-             AlignInBits, nullptr)
-      .release();
-#else
+
   return DIGlobalVariable::getTemporary(
              VMContext, cast_or_null<DIScope>(Context), Name, LinkageName, F,
              LineNumber, Ty, IsLocalToUnit, false,
              cast_or_null<DIDerivedType>(Decl), TemplateParams,
+#ifdef ENABLE_CLASSIC_FLANG  
+             Flags,
+#else
+             DINode::FlagZero,
+#endif
              AlignInBits, nullptr)
       .release();
-#endif        
 }
 
 static DILocalVariable *createLocalVariable(
