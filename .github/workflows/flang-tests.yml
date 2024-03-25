@@ -1,0 +1,76 @@
+name: Build and test Flang
+
+on:
+  pull_request:
+    branches:
+      - 'release_*x'
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    env:
+      install_prefix: /usr/local
+    strategy:
+      matrix:
+        target: [X86]
+        cc: [clang]
+        cpp: [clang++]
+        version: [14, 15]
+        include:
+          - target: X86
+            cc: gcc
+            cpp: g++
+            version: 12
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - if: matrix.cc == 'clang'
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
+          sudo touch /etc/apt/sources.list.d/llvm.list
+          sudo apt update
+          sudo apt install -f -y llvm-${{ matrix.version }} clang-${{ matrix.version}}
+
+      - if: matrix.cc == 'gcc'
+        run: |
+          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
+          sudo apt install gcc-${{ matrix.version }} g++-${{ matrix.version }}
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${{ matrix.version }} 20
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${{ matrix.version }} 20
+
+      - name: ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          key: key-${{ matrix.cc }}-${{ matrix.version }}
+
+      - name: Check tools
+        run: |
+          git --version
+          cmake --version
+          make --version
+          ${{ matrix.cc }}-${{ matrix.version }} --version
+          ${{ matrix.cpp }}-${{ matrix.version }} --version
+
+      - name: Build and install llvm
+        run: ./build-llvm-project.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} -b /usr/bin/${{ matrix.cpp }}-${{ matrix.version }} -n $(nproc) -c -i -s -x "-DLLVM_ENABLE_ASSERTIONS=ON" -v
+
+      - name: Checkout flang
+        run: |
+          cd ../..
+          git clone --depth 1 --single-branch --branch master https://github.com/flang-compiler/flang.git
+
+      - name: Build and install libpgmath & flang
+        run: |
+          cd ../../flang
+          ./build-flang.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -n $(nproc) -c -s -l $(realpath ../classic-flang-llvm-project/classic-flang-llvm-project/llvm)
+
+      - name: Copy llvm-lit
+        run: |
+          cd ../../flang
+          cp ../classic-flang-llvm-project/classic-flang-llvm-project/build/bin/llvm-lit build/flang/bin/
+
+      - name: Test flang
+        run: |
+          cd ../../flang/build/flang
+          make check-all

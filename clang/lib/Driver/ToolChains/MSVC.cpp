@@ -263,6 +263,13 @@ void visualstudio::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     }
   }
 
+#ifdef ENABLE_CLASSIC_FLANG
+  if (C.getDriver().IsFlangMode()) {
+    CmdArgs.push_back(Args.MakeArgString(std::string("-libpath:") +
+                                         TC.getDriver().Dir + "/../lib"));
+  }
+#endif
+
   // Add compiler-rt lib in case if it was explicitly
   // specified as an argument for --rtlib option.
   if (!Args.hasArg(options::OPT_nostdlib)) {
@@ -510,6 +517,74 @@ void MSVCToolChain::AddHIPRuntimeLibArgs(const ArgList &Args,
                   "amdhip64.lib"});
 }
 
+#ifdef ENABLE_CLASSIC_FLANG
+void MSVCToolChain::AddFortranStdlibLibArgs(const ArgList &Args,
+                                    ArgStringList &CmdArgs) const {
+ bool staticFlangLibs = false;
+ bool useOpenMP = false;
+
+  if (Args.hasArg(options::OPT_staticFlangLibs)) {
+    for (auto *A: Args.filtered(options::OPT_staticFlangLibs)) {
+      A->claim();
+      staticFlangLibs = true;
+    }
+  }
+
+  Arg *A = Args.getLastArg(options::OPT_mp, options::OPT_nomp,
+                           options::OPT_fopenmp, options::OPT_fno_openmp);
+  if (A &&
+      (A->getOption().matches(options::OPT_mp) ||
+       A->getOption().matches(options::OPT_fopenmp))) {
+      useOpenMP = true;
+  }
+
+  if (needFortranMain(getDriver(), Args)) {
+    // flangmain is always static
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back("/subsystem:console");
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back("/defaultlib:flangmain.lib");
+  }
+
+  if (staticFlangLibs) {
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back("/defaultlib:libflang.lib");
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back("/defaultlib:libflangrti.lib");
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back("/defaultlib:libpgmath.lib");
+  } else {
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back("/defaultlib:flang.lib");
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back("/defaultlib:flangrti.lib");
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back("/defaultlib:pgmath.lib");
+  }
+  if (useOpenMP) {
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back("/nodefaultlib:vcomp.lib");
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back("/nodefaultlib:vcompd.lib");
+    CmdArgs.push_back("-linker");
+    CmdArgs.push_back("/defaultlib:libomp.lib");
+  }
+
+  // Allways link Fortran executables with Pthreads
+  // CmdArgs.push_back("-lpthread");
+
+  // These options are added clang-cl in Clang.cpp for C/C++
+  // In clang-cl.exe -MD and -MT control these options, but in
+  // flang.exe like clang.exe these are different options for
+  // dependency tracking. Let's assume that if somebody needs
+  // static flang libs, they don't need static C runtime libs.
+  // FIXME: Use LLVM_USE_CRT_<CMAKE_BUILD_TYPE> variable
+  // to use libcmt.lib or msvcrt.lib
+  CmdArgs.push_back("-linker");
+  CmdArgs.push_back("/defaultlib:libcmt.lib");
+}
+#endif
+
 void MSVCToolChain::printVerboseInfo(raw_ostream &OS) const {
   CudaInstallation->print(OS);
   RocmInstallation->print(OS);
@@ -633,6 +708,42 @@ void MSVCToolChain::AddSystemIncludeWithSubfolder(
   llvm::sys::path::append(path, subfolder1, subfolder2, subfolder3);
   addSystemInclude(DriverArgs, CC1Args, path);
 }
+
+#ifdef ENABLE_CLASSIC_FLANG
+/// Convert path list to Fortran frontend argument
+static void AddFlangSysIncludeArg(const ArgList &DriverArgs,
+                                  ArgStringList &Flang1Args,
+                                  ToolChain::path_list IncludePathList) {
+  std::string ArgValue; // Path argument value
+
+  // Make up argument value consisting of paths separated by colons
+  bool first = true;
+  for (auto P : IncludePathList) {
+    if (first) {
+      first = false;
+    } else {
+      ArgValue += ";";
+    }
+    ArgValue += P;
+  }
+
+  // Add the argument
+  Flang1Args.push_back("-stdinc");
+  Flang1Args.push_back(DriverArgs.MakeArgString(ArgValue));
+}
+
+void MSVCToolChain::AddFlangSystemIncludeArgs(const ArgList &DriverArgs,
+                                      ArgStringList &Flang1Args) const {
+path_list IncludePathList;
+  const Driver &D = getDriver();
+  if (DriverArgs.hasArg(options::OPT_nostdinc))
+    return;
+  SmallString<128> P(D.InstalledDir);
+  llvm::sys::path::append(P, "../include");
+  IncludePathList.push_back(P.c_str());
+  AddFlangSysIncludeArg(DriverArgs, Flang1Args, IncludePathList);
+}
+#endif
 
 void MSVCToolChain::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
                                               ArgStringList &CC1Args) const {

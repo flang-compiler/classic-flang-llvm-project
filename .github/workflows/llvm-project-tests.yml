@@ -58,25 +58,40 @@ jobs:
   lit-tests:
     name: Lit Tests
     runs-on: ${{ matrix.os }}
-    container:
-      image: ${{(startsWith(matrix.os, 'ubuntu') && 'ghcr.io/llvm/ci-ubuntu-22.04:latest') || null}}
-      volumes:
-        - /mnt/:/mnt/
+    env:
+      install_prefix: /usr/local
     strategy:
       fail-fast: false
       matrix:
-        os: ${{ fromJSON(inputs.os_list) }}
+        target: [X86]
+        os:
+          - ubuntu-latest
+          # We're using a specific version of macOS due to:
+          # https://github.com/actions/virtual-environments/issues/5900
+          - macOS-11
+          - windows-latest
+        include:
+          # Enable Windows on ARM build, when an official
+          # self-hosted machine is available.
+          # - os: self-hosted
+          #   target: AArch64
+          #   arch: arm64
+          - os: windows-latest
+            arch: amd64
+
     steps:
       - name: Setup Windows
-        if: startsWith(matrix.os, 'windows')
+        if: startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'self')
         uses: llvm/actions/setup-windows@main
         with:
-          arch: amd64
-      # On Windows, starting with win19/20220814.1, cmake choose the 32-bit
-      # python3.10.6 libraries instead of the 64-bit libraries when building
-      # lldb.  Using this setup-python action to make 3.10 the default
-      # python fixes this.
+          arch: ${{ matrix.arch }}
+      # By default CMake chooses the most recent 32-bit libraries instead of
+      # the 64-bit libraries when building and testing LLVM or Clang.
+      # 32 bit version causes a memory error during the testing.
+      # On 'windows-latest' GitHub image (VS2022) 3.11 (32bit) version is installed.
+      # Using this setup-python action to make 3.11 (64bit) the default
       - name: Setup Python
+        if: ${{ matrix.os != 'self-hosted' }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ inputs.python_version }}
@@ -86,10 +101,18 @@ jobs:
       # actions/checkout deletes any existing files in the new git directory,
       # so this needs to either run before ccache-action or it has to use
       # clean: false.
+      - name: Setup psutil
+        # psutil is not available on Windows on ARM.
+        if: startsWith(matrix.os, 'windows')
+        run: pip install psutil
+      - name: Check tools
+        run: python --version
       - uses: actions/checkout@v4
         with:
           fetch-depth: 250
       - name: Setup ccache
+        # ccache is not available for Windows on ARM.
+        if: ${{ matrix.os != 'self-hosted' }}
         uses: hendrikmuhs/ccache-action@v1
         with:
           # A full build of llvm, clang, lld, and lldb takes about 250MB
@@ -103,42 +126,29 @@ jobs:
           max-size: 2G
           key: ${{ matrix.os }}
           variant: sccache
-      - name: Build and Test
+      - name: Test clang Windows
+        # Some LLVM tests are failing on Windows On ARM,
+        # so this step is skipped on WoA until they are fixed.
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          $pcount = $($(Get-WmiObject -class Win32_ComputerSystem).numberoflogicalprocessors)
+          python .\scripts\build_llvm_project.py -d build -t ${{ matrix.target }} --cmake-param=-DLLVM_ENABLE_ASSERTIONS=ON -j $pcount
+          cd build
+          ninja check-all
+        shell: powershell
+      - name: Test clang macOS
+        if: ${{ matrix.os == 'macOS-11'}}
         env:
           # Workaround for https://github.com/actions/virtual-environments/issues/5900.
           # This should be a no-op for non-mac OSes
           PKG_CONFIG_PATH: /usr/local/Homebrew/Library/Homebrew/os/mac/pkgconfig//12
-        shell: bash
-        id: build-llvm
         run: |
-          if [ "${{ runner.os }}" == "Linux" ]; then
-            builddir="/mnt/build/"
-            mkdir -p $builddir
-            extra_cmake_args="-DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang"
-          else
-            builddir="$(pwd)"/build
-          fi
-          echo "llvm-builddir=$builddir" >> "$GITHUB_OUTPUT"
-          cmake -G Ninja \
-                -B "$builddir" \
-                -S llvm \
-                -DLLVM_ENABLE_PROJECTS="${{ inputs.projects }}" \
-                -DCMAKE_BUILD_TYPE=Release \
-                -DLLVM_ENABLE_ASSERTIONS=ON \
-                -DLLDB_INCLUDE_TESTS=OFF \
-                -DCMAKE_C_COMPILER_LAUNCHER=sccache \
-                -DCMAKE_CXX_COMPILER_LAUNCHER=sccache \
-                $extra_cmake_args \
-                ${{ inputs.extra_cmake_args }}
-          ninja -C "$builddir" '${{ inputs.build_target }}'
-
-      - name: Build and Test libclc
-        if: "!startsWith(matrix.os, 'windows') && contains(inputs.projects, 'libclc')"
-        env:
-          LLVM_BUILDDIR: ${{ steps.build-llvm.outputs.llvm-builddir }}
+          ./build-llvm-project.sh -t X86 -e "clang" -p /usr/local -s -n $(sysctl -n hw.logicalcpu) -i -x "-DLLVM_ENABLE_ASSERTIONS=ON" -v
+          cd build
+          make check-all
+      - name: Test clang ubuntu
+        if: ${{ matrix.os == 'ubuntu-latest'}}
         run: |
-          # Make sure all of LLVM libraries that llvm-config needs are built.
-          ninja -C "$LLVM_BUILDDIR"
-          cmake -G Ninja -S libclc -B libclc-build -DLLVM_DIR="$LLVM_BUILDDIR"/lib/cmake/llvm -DLIBCLC_TARGETS_TO_BUILD="amdgcn--;amdgcn--amdhsa;r600--;nvptx--;nvptx64--;nvptx--nvidiacl;nvptx64--nvidiacl"
-          ninja -C libclc-build
-          ninja -C libclc-build test
+          ./build-llvm-project.sh -t X86 -e "${{ inputs.projects }}" -p /usr/local -s -n $(nproc) -i -x "-DLLVM_ENABLE_ASSERTIONS=ON" -v
+          cd build
+          make check-all
