@@ -1,5 +1,10 @@
 // RUN: %libomptarget-compilexx-run-and-check-generic
 
+// This test currently fails on GitHub runners which do not have enough
+// CPUs to allow the creation of the number of threads needed.
+//
+// XFAIL: *
+
 #include <omp.h>
 #include <ompx.h>
 #include <stdio.h>
