@@ -684,7 +684,11 @@ def ccc_gcc_name : Separate<["-"], "ccc-gcc-name">, InternalDriverOpt,
 
 class InternalDebugOpt : Group<internal_debug_Group>,
   Flags<[NoXarchOption, HelpHidden]>,
+#ifdef ENABLE_CLASSIC_FLANG
+  Visibility<[ClangOption, CLOption, DXCOption, FlangOption]>;
+#else
   Visibility<[ClangOption, CLOption, DXCOption]>;
+#endif
 def ccc_install_dir : Separate<["-"], "ccc-install-dir">, InternalDebugOpt,
   HelpText<"Simulate installation in the given directory">;
 def ccc_print_phases : Flag<["-"], "ccc-print-phases">,
@@ -1547,6 +1551,7 @@ def emit_ast : Flag<["-"], "emit-ast">,
   HelpText<"Emit Clang AST files for source inputs">;
 #ifdef ENABLE_CLASSIC_FLANG
 def emit_flang_llvm : Flag<["-"], "emit-flang-llvm">,
+  Visibility<[FlangOption]>,
   HelpText<"Emit Flang LLVM files for source inputs">;
 #endif
 def emit_llvm : Flag<["-"], "emit-llvm">,
@@ -3783,6 +3788,9 @@ defm openmp_optimistic_collapse : BoolFOption<"openmp-optimistic-collapse",
   PosFlag<SetTrue, [], [ClangOption, CC1Option]>,
   NegFlag<SetFalse>, BothFlags<[NoArgumentUnused, HelpHidden], []>>;
 def static_openmp: Flag<["-"], "static-openmp">,
+#ifdef ENABLE_CLASSIC_FLANG
+  Visibility<[ClangOption, FlangOption]>,
+#endif
   HelpText<"Use the static host OpenMP runtime while linking.">;
 def fopenmp_new_driver : Flag<["-"], "fopenmp-new-driver">, Flags<[HelpHidden]>,
   HelpText<"Use the new driver for OpenMP offloading.">;
@@ -4529,15 +4537,31 @@ def gdbx : Flag<["-"], "gdbx">, Group<gTune_Group>;
 // Equivalent to our default dwarf version. Forces usual dwarf emission when
 // CodeView is enabled.
 def gdwarf : Flag<["-"], "gdwarf">, Group<g_Group>,
+#ifdef ENABLE_CLASSIC_FLANG
+  Visibility<[ClangOption, CLOption, DXCOption, FlangOption]>,
+#else
   Visibility<[ClangOption, CLOption, DXCOption]>,
+#endif
   HelpText<"Generate source-level debug information with the default dwarf version">;
 def gdwarf_2 : Flag<["-"], "gdwarf-2">, Group<g_Group>,
+#ifdef ENABLE_CLASSIC_FLANG
+  Visibility<[ClangOption, FlangOption]>,
+#endif
   HelpText<"Generate source-level debug information with dwarf version 2">;
 def gdwarf_3 : Flag<["-"], "gdwarf-3">, Group<g_Group>,
+#ifdef ENABLE_CLASSIC_FLANG
+  Visibility<[ClangOption, FlangOption]>,
+#endif
   HelpText<"Generate source-level debug information with dwarf version 3">;
 def gdwarf_4 : Flag<["-"], "gdwarf-4">, Group<g_Group>,
+#ifdef ENABLE_CLASSIC_FLANG
+  Visibility<[ClangOption, FlangOption]>,
+#endif
   HelpText<"Generate source-level debug information with dwarf version 4">;
 def gdwarf_5 : Flag<["-"], "gdwarf-5">, Group<g_Group>,
+#ifdef ENABLE_CLASSIC_FLANG
+  Visibility<[ClangOption, FlangOption]>,
+#endif
   HelpText<"Generate source-level debug information with dwarf version 5">;
 def gdwarf64 : Flag<["-"], "gdwarf64">, Group<g_Group>,
   Visibility<[ClangOption, CC1Option, CC1AsOption]>,
@@ -4623,9 +4647,16 @@ def gno_simple_template_names : Flag<["-"], "gno-simple-template-names">,
 def ggnu_pubnames : Flag<["-"], "ggnu-pubnames">, Group<g_flags_Group>,
   Visibility<[ClangOption, CC1Option]>;
 def gno_gnu_pubnames : Flag<["-"], "gno-gnu-pubnames">, Group<g_flags_Group>;
+#ifdef ENABLE_CLASSIC_FLANG
+def gpubnames : Flag<["-"], "gpubnames">, Group<g_flags_Group>,
+  Visibility<[ClangOption, CC1Option, FlangOption]>;
+def gno_pubnames : Flag<["-"], "gno-pubnames">, Group<g_flags_Group>,
+  Visibility<[ClangOption, CC1Option, FlangOption]>;
+#else
 def gpubnames : Flag<["-"], "gpubnames">, Group<g_flags_Group>,
   Visibility<[ClangOption, CC1Option]>;
 def gno_pubnames : Flag<["-"], "gno-pubnames">, Group<g_flags_Group>;
+#endif
 def gdwarf_aranges : Flag<["-"], "gdwarf-aranges">, Group<g_flags_Group>;
 def gmodules : Flag <["-"], "gmodules">, Group<gN_Group>,
   HelpText<"Generate debug info with external references to clang modules"
@@ -6011,7 +6042,11 @@ def print_enabled_extensions : Flag<["-", "--"], "print-enabled-extensions">,
 def time : Flag<["-"], "time">,
   HelpText<"Time individual commands">;
 def traditional_cpp : Flag<["-", "--"], "traditional-cpp">,
+#ifdef ENABLE_CLASSIC_FLANG
+  Visibility<[ClangOption, CC1Option, FlangOption]>,
+#else
   Visibility<[ClangOption, CC1Option]>,
+#endif
   HelpText<"Enable some traditional CPP emulation">,
   MarshallingInfoFlag<LangOpts<"TraditionalCPP">>;
 def traditional : Flag<["-", "--"], "traditional">;
@@ -6088,7 +6123,12 @@ def fno_integrated_objemitter : Flag<["-"], "fno-integrated-objemitter">,
   Group<f_Group>,
   HelpText<"Use external machine object code emitter.">;
 
+#ifdef ENABLE_CLASSIC_FLANG
+def : Flag<["-"], "integrated-as">, Alias<fintegrated_as>,
+      Visibility<[ClangOption, CC1Option, FlangOption]>;
+#else
 def : Flag<["-"], "integrated-as">, Alias<fintegrated_as>;
+#endif
 def : Flag<["-"], "no-integrated-as">, Alias<fno_integrated_as>,
       Visibility<[ClangOption, CC1Option, FlangOption]>;
 
@@ -7048,7 +7088,7 @@ def fhermetic_module_files : Flag<["-"], "fhermetic-module-files">, Group<f_Grou
 
 #ifdef ENABLE_CLASSIC_FLANG
 def J : JoinedOrSeparate<["-"], "J">,
-  Flags<[RenderJoined]>,
+  Flags<[RenderJoined]>, Visibility<[FlangOption, FC1Option]>,
   Group<gfortran_Group>;
 
 let Visibility = [FlangOption] in {
@@ -9211,6 +9251,8 @@ multiclass BooleanMFlag<string name> {
   def _off : Flag<["-"], "Mno"#name>;
 }
 
+let Visibility = [FlangOption] in {
+
 def Mfixed : Flag<["-"], "Mfixed">, Group<fortran_format_Group>,
   HelpText<"Force fixed-form format Fortran">,
   Flags<[HelpHidden]>;
@@ -9330,4 +9372,6 @@ def Hq_EQ : Joined<["-"], "Hq,">, Group<pgi_fortran_Group>;
 def Mqq_EQ : Joined<["-"], "Mqq,">, Group<pgi_fortran_Group>;
 def Hqq_EQ : Joined<["-"], "Hqq,">, Group<pgi_fortran_Group>;
 def Wh_EQ : Joined<["-"], "Wh,">, Group<pgi_fortran_Group>;
+
+} // let Visibility = [FlangOption]
 #endif
