@@ -256,7 +256,8 @@ static bool asanUseGlobalsGC(const Triple &T, const CodeGenOptions &CGOpts) {
 }
 
 static TargetLibraryInfoImpl *createTLII(llvm::Triple &TargetTriple,
-                                         const CodeGenOptions &CodeGenOpts) {
+                                         const CodeGenOptions &CodeGenOpts,
+                                         const clang::TargetOptions  &TargetOpts) {
   TargetLibraryInfoImpl *TLII = new TargetLibraryInfoImpl(TargetTriple);
 
   switch (CodeGenOpts.getVecLib()) {
@@ -276,6 +277,10 @@ static TargetLibraryInfoImpl *createTLII(llvm::Triple &TargetTriple,
   case CodeGenOptions::PGMATH:
     TLII->addVectorizableFunctionsFromVecLib(TargetLibraryInfoImpl::PGMATH,
                                              TargetTriple);
+    if (std::find(TargetOpts.Features.begin(), TargetOpts.Features.end(), "+avx512f") != TargetOpts.Features.end()) { 
+       TLII->addVectorizableFunctionsFromVecLib(TargetLibraryInfoImpl::PGMATH_AVX512,
+                                                TargetTriple);
+    }
     break;
 #endif
   case CodeGenOptions::SVML:
@@ -584,7 +589,7 @@ bool EmitAssemblyHelper::AddEmitPasses(legacy::PassManager &CodeGenPasses,
                                        raw_pwrite_stream *DwoOS) {
   // Add LibraryInfo.
   std::unique_ptr<TargetLibraryInfoImpl> TLII(
-      createTLII(TargetTriple, CodeGenOpts));
+      createTLII(TargetTriple, CodeGenOpts,TargetOpts));
   CodeGenPasses.add(new TargetLibraryInfoWrapperPass(*TLII));
 
   // Normal mode, emit a .s or .o file by running the code generator. Note,
@@ -914,7 +919,7 @@ void EmitAssemblyHelper::RunOptimizationPipeline(
   // Register the target library analysis directly and give it a customized
   // preset TLI.
   std::unique_ptr<TargetLibraryInfoImpl> TLII(
-      createTLII(TargetTriple, CodeGenOpts));
+      createTLII(TargetTriple, CodeGenOpts,TargetOpts));
   FAM.registerPass([&] { return TargetLibraryAnalysis(*TLII); });
 
   // Register all the basic analyses with the managers.
