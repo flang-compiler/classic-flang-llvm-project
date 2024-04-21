@@ -240,18 +240,31 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
     }
   }
 
-  // Treat backslashes as regular characters
-  for (auto Arg : Args.filtered(options::OPT_fno_backslash, options::OPT_Mbackslash)) {
-    Arg->claim();
+  if (auto *A =
+          Args.getLastArg(options::OPT_fno_backslash, options::OPT_Mbackslash,
+                          options::OPT_fbackslash, options::OPT_Mnobackslash)) {
+    for (auto Arg :
+         Args.filtered(options::OPT_fno_backslash, options::OPT_Mbackslash,
+                       options::OPT_fbackslash, options::OPT_Mnobackslash)) {
+      Arg->claim();
+    }
+    // Treat backslashes as regular characters
+    if (A->getOption().matches(options::OPT_fno_backslash) ||
+        A->getOption().matches(options::OPT_Mbackslash)) {
+      CommonCmdArgs.push_back("-x");
+      CommonCmdArgs.push_back("124");
+      CommonCmdArgs.push_back("0x40");
+    }
+    // Treat backslashes as C-style escape characters
+    if (A->getOption().matches(options::OPT_fbackslash) ||
+        A->getOption().matches(options::OPT_Mnobackslash)) {
+      CommonCmdArgs.push_back("-y");
+      CommonCmdArgs.push_back("124");
+      CommonCmdArgs.push_back("0x40");
+    }
+  } else {
+    // By default treat backslashes as regular characters
     CommonCmdArgs.push_back("-x");
-    CommonCmdArgs.push_back("124");
-    CommonCmdArgs.push_back("0x40");
-  }
-
-  // Treat backslashes as C-style escape characters
-  for (auto Arg : Args.filtered(options::OPT_fbackslash, options::OPT_Mnobackslash)) {
-    Arg->claim();
-    CommonCmdArgs.push_back("-y");
     CommonCmdArgs.push_back("124");
     CommonCmdArgs.push_back("0x40");
   }
