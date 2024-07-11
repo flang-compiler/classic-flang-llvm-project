@@ -2,8 +2,9 @@
 
 ! Check that the driver invokes flang1 correctly for preprocessed free-form
 ! Fortran code. Also check that the backend is invoked correctly.
+! In particular, target-dependent flags (e.g. -mavx for x86_64) should be visible.
 
-! RUN: %clang --driver-mode=flang -target x86_64-unknown-linux-gnu -c %s -### 2>&1 \
+! RUN: %clang --driver-mode=flang -target x86_64-unknown-linux-gnu -mavx -c %s -### 2>&1 \
 ! RUN:   | FileCheck --check-prefix=CHECK-OBJECT %s
 ! CHECK-OBJECT: "{{.*}}flang1"
 ! CHECK-OBJECT-NOT: "-preprocess"
@@ -11,6 +12,7 @@
 ! CHECK-OBJECT-NEXT: "{{.*}}flang2"
 ! CHECK-OBJECT-SAME: "-asm" [[LLFILE:.*.ll]]
 ! CHECK-OBJECT-NEXT: {{clang.* "-cc1"}}
+! CHECK-OBJECT-SAME: "-target-feature" "+avx"
 ! CHECK-OBJECT-SAME: "-o" "classic-flang.o"
 ! CHECK-OBJECT-SAME: "-x" "ir"
 ! CHECK-OBJECT-SAME: [[LLFILE]]
@@ -31,16 +33,32 @@
 
 ! Check that the backend job (clang -cc1) is not combined into the compile job
 ! (flang2) even if -integrated-as is specified.
+! Also, check that AArch64-specific target-dependent flags are visible.
 
-! RUN: %clang --driver-mode=flang -target x86_64-unknown-linux-gnu -integrated-as -S %s -### 2>&1 \
+! RUN: %clang --driver-mode=flang -target aarch64-unknown-linux-gnu -integrated-as -mno-outline-atomics -S %s -### 2>&1 \
 ! RUN:   | FileCheck --check-prefix=CHECK-ASM %s
 ! CHECK-ASM: "{{.*}}flang1"
 ! CHECK-ASM-NEXT: "{{.*}}flang2"
 ! CHECK-ASM-SAME: "-asm" [[LLFILE:.*.ll]]
 ! CHECK-ASM-NEXT: {{clang.* "-cc1"}}
+! CHECK-ASM-SAME: "-target-feature" "-outline-atomics"
 ! CHECK-ASM-SAME: "-o" "classic-flang.s"
 ! CHECK-ASM-SAME: "-x" "ir"
 ! CHECK-ASM-SAME: [[LLFILE]]
+
+! Check that other target-independent compiler flags are visible.
+! RUN: %clang --driver-mode=flang -target x86_64-unknown-linux-gnu --gcc-install-dir=%S/../Inputs/debian_multiarch_tree/usr/lib/gcc/x86_64-linux-gnu/10/ -fno-strict-aliasing -funroll-loops %s -### 2>&1 \
+! RUN:   | FileCheck --check-prefix=CHECK-FFLAGS %s
+! CHECK-FFLAGS: "{{.*}}flang1"
+! CHECK-FFLAGS-NEXT: "{{.*}}flang2"
+! CHECK-FFLAGS-SAME: "-asm" [[LLFILE:.*.ll]]
+! CHECK-FFLAGS-NEXT: {{clang.* "-cc1"}}
+! CHECK-FFLAGS-SAME: "-relaxed-aliasing"
+! CHECK-FFLAGS-SAME: "-funroll-loops"
+! CHECK-FFLAGS-SAME: "-x" "ir"
+! CHECK-FFLAGS-SAME: [[LLFILE]]
+! CHECK-FFLAGS-NEXT: "{{.*}}ld{{(.exe)?}}"
+! CHECK-FFLAGS-SAME: "-L{{[^ ]*[/\\]+}}debian_multiarch_tree/usr/lib/gcc/x86_64-linux-gnu/10"
 
 ! Check that the linker job is given the correct libraries and library paths.
 
