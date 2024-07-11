@@ -195,7 +195,11 @@ def hip_Group : OptionGroup<"<HIP group>">, Group<f_Group>,
 
 def m_Group : OptionGroup<"<m group>">, Group<CompileOnly_Group>,
               DocName<"Target-dependent compilation options">,
+#ifdef ENABLE_CLASSIC_FLANG
+              Visibility<[ClangOption, CLOption, FlangOption]>;
+#else
               Visibility<[ClangOption, CLOption]>;
+#endif
 
 def hlsl_Group : OptionGroup<"<HLSL group>">, Group<f_Group>,
                    DocName<"HLSL options">,
@@ -231,10 +235,18 @@ def m_wasm_Features_Group : OptionGroup<"<wasm features group>">,
 def m_wasm_Features_Driver_Group : OptionGroup<"<wasm driver features group>">,
                                    Group<m_Group>, DocName<"WebAssembly Driver">;
 def m_x86_Features_Group : OptionGroup<"<x86 features group>">,
+#ifdef ENABLE_CLASSIC_FLANG
+                           Group<m_Group>, Visibility<[ClangOption, CLOption, FlangOption]>,
+#else
                            Group<m_Group>, Visibility<[ClangOption, CLOption]>,
+#endif
                            DocName<"X86">;
 def m_x86_AVX10_Features_Group : OptionGroup<"<x86 AVX10 features group>">,
+#ifdef ENABLE_CLASSIC_FLANG
+                                 Group<m_Group>, Visibility<[ClangOption, CLOption, FlangOption]>,
+#else
                                  Group<m_Group>, Visibility<[ClangOption, CLOption]>,
+#endif
                                  DocName<"X86 AVX10">;
 def m_riscv_Features_Group : OptionGroup<"<riscv features group>">,
                              Group<m_Group>, DocName<"RISC-V">;
@@ -3516,7 +3528,11 @@ def fno_realloc_lhs : Flag<["-"], "fno-realloc-lhs">, Group<f_Group>,
 def fno_stack_protector : Flag<["-"], "fno-stack-protector">, Group<f_Group>,
   HelpText<"Disable the use of stack protectors">;
 def fno_strict_aliasing : Flag<["-"], "fno-strict-aliasing">, Group<f_Group>,
+#ifdef ENABLE_CLASSIC_FLANG
+  Visibility<[ClangOption, CLOption, DXCOption, FlangOption]>,
+#else
   Visibility<[ClangOption, CLOption, DXCOption]>,
+#endif
   HelpText<"Disable optimizations based on strict aliasing rules">;
 def fstruct_path_tbaa : Flag<["-"], "fstruct-path-tbaa">, Group<f_Group>;
 def fno_struct_path_tbaa : Flag<["-"], "fno-struct-path-tbaa">, Group<f_Group>;
