@@ -194,7 +194,11 @@ def hip_Group : OptionGroup<"<HIP group>">, Group<f_Group>,
 
 def m_Group : OptionGroup<"<m group>">, Group<CompileOnly_Group>,
               DocName<"Target-dependent compilation options">,
+#ifdef ENABLE_CLASSIC_FLANG
+              Visibility<[ClangOption, CLOption, FlangOption]>;
+#else
               Visibility<[ClangOption, CLOption]>;
+#endif
 
 def hlsl_Group : OptionGroup<"<HLSL group>">, Group<f_Group>,
                    DocName<"HLSL options">,
@@ -230,10 +234,18 @@ def m_wasm_Features_Group : OptionGroup<"<wasm features group>">,
 def m_wasm_Features_Driver_Group : OptionGroup<"<wasm driver features group>">,
                                    Group<m_Group>, DocName<"WebAssembly Driver">;
 def m_x86_Features_Group : OptionGroup<"<x86 features group>">,
+#ifdef ENABLE_CLASSIC_FLANG
+                           Group<m_Group>, Visibility<[ClangOption, CLOption, FlangOption]>,
+#else
                            Group<m_Group>, Visibility<[ClangOption, CLOption]>,
+#endif
                            DocName<"X86">;
 def m_x86_AVX10_Features_Group : OptionGroup<"<x86 AVX10 features group>">,
+#ifdef ENABLE_CLASSIC_FLANG
+                                 Group<m_Group>, Visibility<[ClangOption, CLOption, FlangOption]>,
+#else
                                  Group<m_Group>, Visibility<[ClangOption, CLOption]>,
+#endif
                                  DocName<"X86 AVX10">;
 def m_riscv_Features_Group : OptionGroup<"<riscv features group>">,
                              Group<m_Group>, DocName<"RISC-V">;
@@ -819,12 +831,16 @@ def _DASH_DASH : Option<["--"], "", KIND_REMAINING_ARGS>,
     Flags<[NoXarchOption]>, Visibility<[ClangOption, CLOption, DXCOption]>;
 def A : JoinedOrSeparate<["-"], "A">, Flags<[RenderJoined]>,
   Group<gfortran_Group>;
-def B : JoinedOrSeparate<["-"], "B">, MetaVarName<"<prefix>">,
 #ifdef ENABLE_CLASSIC_FLANG
+def B : JoinedOrSeparate<["-"], "B">, MetaVarName<"<prefix>">,
     Visibility<[ClangOption, FlangOption]>,
-#endif
     HelpText<"Search $prefix$file for executables, libraries, and data files. "
     "If $prefix is a directory, search $prefix/$file">;
+#else
+def B : JoinedOrSeparate<["-"], "B">, MetaVarName<"<prefix>">,
+    HelpText<"Search $prefix$file for executables, libraries, and data files. "
+    "If $prefix is a directory, search $prefix/$file">;
+#endif
 def gcc_install_dir_EQ : Joined<["--"], "gcc-install-dir=">,
   Visibility<[ClangOption, FlangOption]>,
   HelpText<"Use GCC installation in the specified directory. The directory ends with path components like 'lib{,32,64}/gcc{,-cross}/$triple/$version'. "
@@ -3405,7 +3421,11 @@ defm diagnostics_show_line_numbers : BoolFOption<"diagnostics-show-line-numbers"
 def fno_stack_protector : Flag<["-"], "fno-stack-protector">, Group<f_Group>,
   HelpText<"Disable the use of stack protectors">;
 def fno_strict_aliasing : Flag<["-"], "fno-strict-aliasing">, Group<f_Group>,
+#ifdef ENABLE_CLASSIC_FLANG
+  Visibility<[ClangOption, CLOption, DXCOption, FlangOption]>,
+#else
   Visibility<[ClangOption, CLOption, DXCOption]>,
+#endif
   HelpText<"Disable optimizations based on strict aliasing rules">;
 def fstruct_path_tbaa : Flag<["-"], "fstruct-path-tbaa">, Group<f_Group>;
 def fno_struct_path_tbaa : Flag<["-"], "fno-struct-path-tbaa">, Group<f_Group>;
@@ -4056,10 +4076,17 @@ def ftrap_function_EQ : Joined<["-"], "ftrap-function=">, Group<f_Group>,
   Visibility<[ClangOption, CC1Option]>,
   HelpText<"Issue call to specified function rather than a trap instruction">,
   MarshallingInfoString<CodeGenOpts<"TrapFuncName">>;
+#ifdef ENABLE_CLASSIC_FLANG
+def funroll_loops : Flag<["-"], "funroll-loops">, Group<f_Group>,
+  HelpText<"Turn on loop unroller">, Visibility<[ClangOption, CC1Option, FlangOption]>;
+def fno_unroll_loops : Flag<["-"], "fno-unroll-loops">, Group<f_Group>,
+  HelpText<"Turn off loop unroller">, Visibility<[ClangOption, CC1Option, FlangOption]>;
+#else
 def funroll_loops : Flag<["-"], "funroll-loops">, Group<f_Group>,
   HelpText<"Turn on loop unroller">, Visibility<[ClangOption, CC1Option]>;
 def fno_unroll_loops : Flag<["-"], "fno-unroll-loops">, Group<f_Group>,
   HelpText<"Turn off loop unroller">, Visibility<[ClangOption, CC1Option]>;
+#endif
 def ffinite_loops: Flag<["-"],  "ffinite-loops">, Group<f_Group>,
   HelpText<"Assume all non-trivial loops are finite.">, Visibility<[ClangOption, CC1Option]>;
 def fno_finite_loops: Flag<["-"], "fno-finite-loops">, Group<f_Group>,
