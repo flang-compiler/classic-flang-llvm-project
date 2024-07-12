@@ -66,10 +66,8 @@ jobs:
         target: [X86]
         os:
           - ubuntu-latest
-          # We're using a specific version of macOS due to:
-          # https://github.com/actions/virtual-environments/issues/5900
-          - macOS-11
           - windows-latest
+          - macOS-13
         include:
           # Enable Windows on ARM build, when an official
           # self-hosted machine is available.
@@ -137,7 +135,7 @@ jobs:
           ninja check-all
         shell: powershell
       - name: Test clang macOS
-        if: ${{ matrix.os == 'macOS-11'}}
+        if: ${{ matrix.os == 'macOS-13'}}
         env:
           # Workaround for https://github.com/actions/virtual-environments/issues/5900.
           # This should be a no-op for non-mac OSes
