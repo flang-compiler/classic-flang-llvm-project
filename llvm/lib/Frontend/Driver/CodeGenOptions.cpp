@@ -13,7 +13,8 @@
 namespace llvm::driver {
 
 TargetLibraryInfoImpl *createTLII(llvm::Triple &TargetTriple,
-                                  driver::VectorLibrary Veclib) {
+                                  driver::VectorLibrary Veclib,
+                                  bool TargetHasAVX512) {
   TargetLibraryInfoImpl *TLII = new TargetLibraryInfoImpl(TargetTriple);
 
   using VectorLibrary = llvm::driver::VectorLibrary;
@@ -34,7 +35,11 @@ TargetLibraryInfoImpl *createTLII(llvm::Triple &TargetTriple,
   case VectorLibrary::PGMATH:
     TLII->addVectorizableFunctionsFromVecLib(TargetLibraryInfoImpl::PGMATH,
                                              TargetTriple);
+    if (TargetHasAVX512)
+      TLII->addVectorizableFunctionsFromVecLib(
+          TargetLibraryInfoImpl::PGMATH_AVX512, TargetTriple);
     break;
+
 #endif
   case VectorLibrary::SVML:
     TLII->addVectorizableFunctionsFromVecLib(TargetLibraryInfoImpl::SVML,
