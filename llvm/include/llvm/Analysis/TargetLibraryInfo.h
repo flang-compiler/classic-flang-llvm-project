@@ -130,6 +130,7 @@ public:
     MASSV,            // IBM MASS vector library.
 #ifdef ENABLE_CLASSIC_FLANG
     PGMATH,           // PGI math library.
+    PGMATH_AVX512,    // PGI math library (AVX512 subset).
 #endif
     SVML,             // Intel short vector math library.
     SLEEFGNUABI, // SLEEF - SIMD Library for Evaluating Elementary Functions.
