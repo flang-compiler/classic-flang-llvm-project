@@ -36,7 +36,8 @@ enum class VectorLibrary {
 };
 
 TargetLibraryInfoImpl *createTLII(llvm::Triple &TargetTriple,
-                                  VectorLibrary Veclib);
+                                  VectorLibrary Veclib,
+                                  bool targetAVX512);
 
 } // end namespace llvm::driver
 
