@@ -36,6 +36,8 @@ static cl::opt<TargetLibraryInfoImpl::VectorLibrary> ClVectorLibrary(
 #ifdef ENABLE_CLASSIC_FLANG
                clEnumValN(TargetLibraryInfoImpl::PGMATH, "PGMATH",
                           "PGI math library"),
+               clEnumValN(TargetLibraryInfoImpl::PGMATH_AVX512, "PGMATH_AVX512",
+                          "PGI math library (AVX512)"),
 #endif
                clEnumValN(TargetLibraryInfoImpl::SVML, "SVML",
                           "Intel SVML library"),
@@ -1351,6 +1353,15 @@ void TargetLibraryInfoImpl::addVectorizableFunctionsFromVecLib(
     }
     break;
   }
+  case PGMATH_AVX512: {
+     const VecDesc VecFuncs[] = {
+     #define TLI_DEFINE_PGMATH_X86_AVX512_VECFUNCS
+     #include "llvm/Analysis/VecFuncs.def"
+     #undef TLI_DEFINE_PGMATH_X86_AVX512_VECFUNCS
+     };
+     addVectorizableFunctions(VecFuncs);
+     break;
+   }
 #endif
 
   case NoLibrary:
