@@ -580,8 +580,11 @@ bool EmitAssemblyHelper::AddEmitPasses(legacy::PassManager &CodeGenPasses,
                                        raw_pwrite_stream &OS,
                                        raw_pwrite_stream *DwoOS) {
   // Add LibraryInfo.
-  std::unique_ptr<TargetLibraryInfoImpl> TLII(
-      llvm::driver::createTLII(TargetTriple, CodeGenOpts.getVecLib()));
+  bool TargetHasAVX512 =
+      std::find(TargetOpts.Features.begin(), TargetOpts.Features.end(),
+                "+avx512f") != TargetOpts.Features.end();
+  std::unique_ptr<TargetLibraryInfoImpl> TLII(llvm::driver::createTLII(
+      TargetTriple, CodeGenOpts.getVecLib(), TargetHasAVX512));
   CodeGenPasses.add(new TargetLibraryInfoWrapperPass(*TLII));
 
   // Normal mode, emit a .s or .o file by running the code generator. Note,
@@ -930,8 +933,11 @@ void EmitAssemblyHelper::RunOptimizationPipeline(
 
   // Register the target library analysis directly and give it a customized
   // preset TLI.
-  std::unique_ptr<TargetLibraryInfoImpl> TLII(
-      llvm::driver::createTLII(TargetTriple, CodeGenOpts.getVecLib()));
+  bool TargetHasAVX512 =
+      std::find(TargetOpts.Features.begin(), TargetOpts.Features.end(),
+                "+avx512f") != TargetOpts.Features.end();
+  std::unique_ptr<TargetLibraryInfoImpl> TLII(llvm::driver::createTLII(
+      TargetTriple, CodeGenOpts.getVecLib(), TargetHasAVX512));
   FAM.registerPass([&] { return TargetLibraryAnalysis(*TLII); });
 
   // Register all the basic analyses with the managers.
