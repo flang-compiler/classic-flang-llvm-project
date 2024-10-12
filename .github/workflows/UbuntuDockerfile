@@ -37,9 +37,9 @@ RUN apt --fix-missing update && \
     libncursesw5-dev xz-utils tk-dev libffi-dev liblzma-dev python3-openssl
 
 RUN cd /opt && \
-    wget https://github.com/Kitware/CMake/releases/download/v3.20.0/cmake-3.20.0-linux-aarch64.sh && \
-    /bin/sh cmake-3.20.0-linux-aarch64.sh --skip-license --include-subdir && \
-    ln -s /opt/cmake-3.20.0-linux-aarch64/bin/* /usr/local/bin
+    wget https://github.com/Kitware/CMake/releases/download/v3.30.3/cmake-3.30.3-linux-aarch64.sh && \
+    /bin/sh cmake-3.30.3-linux-aarch64.sh --skip-license --include-subdir && \
+    ln -s /opt/cmake-3.30.3-linux-aarch64/bin/* /usr/local/bin
 
 RUN ln -s /usr/bin/ninja-build /usr/local/bin/ninja
 
