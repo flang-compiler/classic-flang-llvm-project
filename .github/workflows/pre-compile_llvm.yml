@@ -71,7 +71,7 @@ jobs:
           mv llvm_build.tar.gz classic-flang-llvm-project/classic-flang-llvm-project/.
 
       - name: Upload llvm
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: llvm_build_${{ matrix.target }}_${{ matrix.cc }}_${{ matrix.version }}_${{ steps.extract_branch.outputs.branch }}
           path: llvm_build.tar.gz
@@ -124,7 +124,7 @@ jobs:
           Copy-Item llvm_build.7z -Destination $pwd/classic-flang-llvm-project/
 
       - name: Upload llvm
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: llvm_build_win_${{ matrix.arch }}_clangcl_${{ steps.extract_branch.outputs.branch }}
           path: ${{ github.workspace }}\llvm_build.7z
