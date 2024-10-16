@@ -340,14 +340,14 @@ endif()
 # Building the Fortran module files
 # One compilation step creates both omp_lib.mod and omp_lib_kinds.mod
 configure_file(${LIBOMP_INC_DIR}/omp_lib.h.var omp_lib.h @ONLY)
-configure_file(${LIBOMP_INC_DIR}/omp_lib.F90.var omp_lib.F90 @ONLY)
+configure_file(${LIBOMP_INC_DIR}/omp_lib.f90.var omp_lib.f90 @ONLY)
 
 set(BUILD_FORTRAN_MODULES False)
 if (NOT ${LIBOMP_FORTRAN_MODULES_COMPILER} STREQUAL "")
   # If libomp is built as an LLVM runtime and the flang compiler is available,
   # compile the Fortran module files.
   message(STATUS "configuring openmp to build Fortran module files using ${LIBOMP_FORTRAN_MODULES_COMPILER}")
-  set(LIBOMP_FORTRAN_SOURCE_FILE omp_lib.F90)
+  set(LIBOMP_FORTRAN_SOURCE_FILE omp_lib.f90)
   add_custom_target(libomp-mod ALL DEPENDS omp_lib.mod omp_lib_kinds.mod)
   add_custom_command(
     OUTPUT omp_lib.mod omp_lib_kinds.mod
@@ -367,7 +367,7 @@ elseif(${LIBOMP_FORTRAN_MODULES})
   set_target_properties(libomp-mod PROPERTIES FOLDER "OpenMP/Misc")
   libomp_get_fflags(LIBOMP_CONFIGURED_FFLAGS)
   if(CMAKE_Fortran_COMPILER_SUPPORTS_F90)
-    set(LIBOMP_FORTRAN_SOURCE_FILE omp_lib.F90)
+    set(LIBOMP_FORTRAN_SOURCE_FILE omp_lib.f90)
   else()
     message(FATAL_ERROR "Fortran module build requires Fortran 90 compiler")
   endif()
