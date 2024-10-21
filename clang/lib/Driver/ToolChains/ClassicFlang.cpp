@@ -667,7 +667,11 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
   /***** Upper part of the Fortran frontend *****/
 
   // TODO do we need to invoke this under GDB sometimes?
-  const char *UpperExec = Args.MakeArgString(getToolChain().GetProgramPath("flang1"));
+  std::string flang1 = "flang1";
+  if (getToolChain().isCrossCompiling())
+    flang1 = getToolChain().getEffectiveTriple().getTriple() + "-" + flang1;
+  const char *UpperExec =
+      Args.MakeArgString(getToolChain().GetProgramPath(flang1.c_str()));
 
   UpperCmdArgs.push_back("-opt"); UpperCmdArgs.push_back(Args.MakeArgString(OptOStr));
   UpperCmdArgs.push_back("-terse"); UpperCmdArgs.push_back("1");
@@ -997,8 +1001,11 @@ void ClassicFlang::ConstructJob(Compilation &C, const JobAction &JA,
       Args.hasArg(options::OPT_E)) return;
 
   /***** Lower part of Fortran frontend *****/
-
-  const char *LowerExec = Args.MakeArgString(getToolChain().GetProgramPath("flang2"));
+  std::string flang2 = "flang2";
+  if (getToolChain().isCrossCompiling())
+    flang2 = getToolChain().getEffectiveTriple().getTriple() + "-" + flang2;
+  const char *LowerExec =
+      Args.MakeArgString(getToolChain().GetProgramPath(flang2.c_str()));
 
   // TODO FLANG arg handling
   LowerCmdArgs.push_back("-fn"); LowerCmdArgs.push_back(Input.getBaseInput());
