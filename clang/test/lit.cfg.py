@@ -370,3 +370,5 @@ config.environment["CLANG_NO_DEFAULT_CONFIG"] = "1"
 
 if config.use_classic_flang:
     config.available_features.add("classic_flang")
+
+config.available_features.add("host-" + config.host_arch)
