@@ -666,7 +666,11 @@ void Linux::AddFlangSystemIncludeArgs(const ArgList &DriverArgs,
 
   {
     SmallString<128> P(D.Dir);
-    llvm::sys::path::append(P, "../include");
+    if (isCrossCompiling())
+      llvm::sys::path::append(P, "../include",
+                              getEffectiveTriple().getTriple());
+    else
+      llvm::sys::path::append(P, "../include");
     IncludePathList.push_back(P.c_str());
   }
 
