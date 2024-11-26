@@ -1,6 +1,6 @@
 #include <omp.h>
-#include <malloc.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <memory.h>
 
 #define LOOP_IV_TYPE0 LOOP_TYPES
