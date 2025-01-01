@@ -23,7 +23,7 @@ jobs:
             version: 12
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - if: matrix.cc == 'clang'
         run: |

@@ -92,7 +92,7 @@ jobs:
           #   target: AArch64
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup Windows
         uses: llvm/actions/setup-windows@main
