@@ -8,15 +8,9 @@ on:
   push:
     branches:
       - 'release_*x'
-    paths:
-      - 'llvm/**'
-      - '.github/workflows/llvm-tests.yml'
   pull_request:
     branches:
       - 'release_*x'
-    paths:
-      - 'llvm/**'
-      - '.github/workflows/llvm-tests.yml'
 
 concurrency:
   # Skip intermediate builds: always.
