@@ -4634,8 +4634,7 @@ void Driver::BuildActions(Compilation &C, DerivedArgList &Args,
 
       // Use the -mcpu=? flag as the dummy input to cc1.
       Actions.clear();
-      Action *InputAc = C.MakeAction<InputAction>(
-          *A, IsFlangMode() ? types::TY_Fortran : types::TY_C);
+      Action *InputAc = C.MakeAction<InputAction>(*A, types::TY_C);
       Actions.push_back(
           C.MakeAction<PrecompileJobAction>(InputAc, types::TY_Nothing));
       for (auto &I : Inputs)
@@ -6904,8 +6903,7 @@ bool Driver::ShouldUseFlangCompiler(const JobAction &JA) const {
     return false;
 
   // And say "no" if this is not a kind of action flang understands.
-  if (!isa<PreprocessJobAction>(JA) && !isa<PrecompileJobAction>(JA) &&
-      !isa<CompileJobAction>(JA)
+  if (!isa<PreprocessJobAction>(JA) && !isa<CompileJobAction>(JA)
 #ifndef ENABLE_CLASSIC_FLANG
       && !isa<BackendJobAction>(JA)
 #endif
