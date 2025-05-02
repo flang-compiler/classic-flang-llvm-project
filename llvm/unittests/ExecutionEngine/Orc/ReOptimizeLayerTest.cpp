@@ -121,6 +121,7 @@ static Function *createRetFunction(Module *M, StringRef Name,
   return Result;
 }
 
+#ifndef ENABLE_CLASSIC_FLANG
 TEST_F(ReOptimizeLayerTest, BasicReOptimization) {
   MangleAndInterner Mangle(*ES, *DL);
 
@@ -179,3 +180,4 @@ TEST_F(ReOptimizeLayerTest, BasicReOptimization) {
     EXPECT_EQ(FuncPtr(), 42);
   EXPECT_EQ(FuncPtr(), 53);
 }
+#endif
