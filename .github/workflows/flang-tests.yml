@@ -1,43 +1,26 @@
 name: Build and test Flang
 
 on:
-  pull_request:
-    branches:
-      - 'release_*x'
+  workflow_call:
+    inputs:
+      architecture:
+        required: true
+        type: string
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ${{ matrix.target.runner }}
     env:
       install_prefix: /usr/local
     strategy:
       matrix:
-        target: [X86]
-        cc: [clang]
-        cpp: [clang++]
-        version: [14, 15]
-        include:
-          - target: X86
-            cc: gcc
-            cpp: g++
-            version: 12
-
+        target: ${{ fromJSON(inputs.architecture) }}
+        tool:
+          - {"cc": "clang-17", "cxx": "clang++-17"}
+          - {"cc": "clang-18", "cxx": "clang++-18"}
+          - {"cc": "gcc-13", "cxx": "g++-13"}
     steps:
       - uses: actions/checkout@v2
-
-      - if: matrix.cc == 'clang'
-        run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
-          sudo touch /etc/apt/sources.list.d/llvm.list
-          sudo apt update
-          sudo apt install -f -y llvm-${{ matrix.version }} clang-${{ matrix.version}}
-
-      - if: matrix.cc == 'gcc'
-        run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
-          sudo apt install gcc-${{ matrix.version }} g++-${{ matrix.version }}
-          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-${{ matrix.version }} 20
-          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-${{ matrix.version }} 20
 
       - name: ccache
         uses: hendrikmuhs/ccache-action@v1
@@ -49,28 +32,28 @@ jobs:
           git --version
           cmake --version
           make --version
-          ${{ matrix.cc }}-${{ matrix.version }} --version
-          ${{ matrix.cpp }}-${{ matrix.version }} --version
+          ${{ matrix.tool.cc }} --version
+          ${{ matrix.tool.cxx }} --version
 
-      - name: Build and install llvm
-        run: ./build-llvm-project.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} -b /usr/bin/${{ matrix.cpp }}-${{ matrix.version }} -n $(nproc) -c -i -s -x "-DLLVM_ENABLE_ASSERTIONS=ON" -v
+      - name: Build Clang/LLVM
+        run: ./build-llvm-project.sh -t ${{ matrix.target.name }} -p ${{ env.install_prefix }} -a /usr/bin/${{ matrix.tool.cc }} -b /usr/bin/${{ matrix.tool.cxx }} -n $(nproc) -c -i -s -x "-DLLVM_ENABLE_ASSERTIONS=ON" -v
 
-      - name: Checkout flang
+      - name: Checkout Flang
         run: |
           cd ../..
           git clone --depth 1 --single-branch --branch master https://github.com/flang-compiler/flang.git
 
-      - name: Build and install libpgmath & flang
+      - name: Build libpgmath and Flang
         run: |
           cd ../../flang
-          ./build-flang.sh -t ${{ matrix.target }} -p ${{ env.install_prefix }} -n $(nproc) -c -s -l $(realpath ../classic-flang-llvm-project/classic-flang-llvm-project/llvm)
+          ./build-flang.sh -t ${{ matrix.target.name }} -p ${{ env.install_prefix }} -n $(nproc) -s -l $(realpath ../classic-flang-llvm-project/classic-flang-llvm-project/llvm)
 
       - name: Copy llvm-lit
         run: |
           cd ../../flang
           cp ../classic-flang-llvm-project/classic-flang-llvm-project/build/bin/llvm-lit build/flang/bin/
 
-      - name: Test flang
+      - name: Test Flang
         run: |
           cd ../../flang/build/flang
           make check-all
