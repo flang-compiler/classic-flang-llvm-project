@@ -2,6 +2,8 @@ name: Pre-compile llvm
 
 on:
   workflow_dispatch:
+    branches:
+      - 'test-prebuild'
   push:
     branches:
       - 'release_*x'
@@ -58,7 +60,7 @@ jobs:
       - name: Upload llvm
         uses: actions/upload-artifact@v4
         with:
-          name: llvm_build_${{ matrix.target }}_${{ matrix.cc }}_${{ matrix.version }}_${{ steps.extract_branch.outputs.branch }}
+          name: llvm_build_${{ matrix.target.name }}_${{ matrix.cc }}_${{ matrix.version }}_${{ steps.extract_branch.outputs.branch }}
           path: llvm_build.tar.gz
 
   build-win:
@@ -103,7 +105,7 @@ jobs:
         shell: powershell
         run: |
           $pcount = $($(Get-WmiObject -class Win32_ComputerSystem).numberoflogicalprocessors)
-          python .\scripts\build_llvm_project.py -d build -t ${{ matrix.target }} --cmake-param=-DLLVM_ENABLE_ASSERTIONS=ON -j $pcount -v
+          python .\scripts\build_llvm_project.py -d build -t ${{ matrix.target.name }} --cmake-param=-DLLVM_ENABLE_ASSERTIONS=ON -j $pcount -v
           cd ..
           7z a llvm_build.7z $pwd/classic-flang-llvm-project/
           Copy-Item llvm_build.7z -Destination $pwd/classic-flang-llvm-project/
