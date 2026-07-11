@@ -9,31 +9,16 @@ on:
 jobs:
   build:
     name: Ubuntu Linux
-    runs-on: ubuntu-22.04
     strategy:
       matrix:
-        target: [X86]
+        target:
+          - {"name": "X86", "runner": "ubuntu-24.04"}
+          - {"name": "AArch64", "runner": "ubuntu-24.04-arm"}
         cc: [clang]
         cpp: [clang++]
-        version: [14, 15]
-        include:
-          - target: X86
-            cc: gcc
-            cpp: g++
-            version: 12
-
+        version: [18]
+    runs-on: ${{ matrix.target.runner }}
     steps:
-      - if: matrix.cc == 'clang'
-        run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
-          sudo apt update
-          sudo apt install -f -y llvm-${{ matrix.version }} clang-${{ matrix.version }}
-
-      - if: matrix.cc == 'gcc'
-        run: |
-          sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa
-          sudo apt install gcc-${{ matrix.version }} g++-${{ matrix.version }}
-
       - name: Check tools
         run: |
           git --version
@@ -57,7 +42,7 @@ jobs:
           # After build place the artifacts in classic-flang-llvm-project/classic-flang-llvm-project, so Upload can find them.
           mkdir classic-flang-llvm-project
           ./build-llvm-project.sh \
-            -t ${{ matrix.target }} \
+            -t ${{ matrix.target.name }} \
             -p /usr/local \
             -a /usr/bin/${{ matrix.cc }}-${{ matrix.version }} \
             -b /usr/bin/${{ matrix.cpp }}-${{ matrix.version }} \
