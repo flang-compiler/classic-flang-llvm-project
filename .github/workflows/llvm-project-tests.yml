@@ -14,7 +14,7 @@ on:
         required: false
       os_list:
         required: false
-        default: '["ubuntu-latest", "windows-2019", "macOS-13"]'
+        default: '["ubuntu-latest", "windows-2019", "macOS-14"]'
       python_version:
         required: false
         type: string
@@ -44,7 +44,7 @@ on:
         # to install a python version linked against a newer version of glibc.
         # TODO(boomanaiden154): Bump the Ubuntu version once the version in the
         # container is bumped.
-        default: '["ubuntu-22.04", "windows-2019", "macOS-13"]'
+        default: '["ubuntu-22.04", "windows-2019", "macOS-14"]'
 
       python_version:
         required: false
@@ -72,7 +72,6 @@ jobs:
         os:
           - ubuntu-latest
           - windows-latest
-          - macOS-13
         include:
           # Enable Windows on ARM build, when an official
           # self-hosted machine is available.
@@ -140,7 +139,7 @@ jobs:
           ninja check-all
         shell: powershell
       - name: Test clang macOS
-        if: ${{ matrix.os == 'macOS-13'}}
+        if: ${{ matrix.os == 'macOS-14'}}
         env:
           # Workaround for https://github.com/actions/virtual-environments/issues/5900.
           # This should be a no-op for non-mac OSes
